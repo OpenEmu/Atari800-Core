@@ -27,9 +27,10 @@
 
 
 #import "ATR800GameCore.h"
-#import <OERingBuffer.h>
+#import <OpenEmuBase/OERingBuffer.h>
 #import "OE5200SystemResponderClient.h"
 #import <OpenGL/gl.h>
+#import <CommonCrypto/CommonDigest.h>
 
 //#define _UINT32
 
@@ -78,6 +79,7 @@ typedef struct {
 	unsigned char *screenBuffer;
     double sampleRate;
 	ATR5200ControllerState controllerStates[4];
+    NSString *md5Hash;
 }
 - (void)renderToBuffer;
 - (ATR5200ControllerState)controllerStateForPlayer:(NSUInteger)playerNum;
@@ -314,6 +316,17 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
     //Get the size of the rom so that Atari800 knows which 5200 cart type to load
     NSData* dataObj = [NSData dataWithContentsOfFile:[path stringByStandardizingPath]];
     size_t size = [dataObj length];
+    
+    // Compute md5 hash
+    unsigned char hash[16];
+    CC_MD5([dataObj bytes], (CC_LONG)size, hash);
+    md5Hash = [NSString stringWithFormat:
+               @"%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+               hash[0], hash[1], hash[2], hash[3],
+               hash[4], hash[5], hash[6], hash[7],
+               hash[8], hash[9], hash[10], hash[11],
+               hash[12], hash[13], hash[14], hash[15]
+               ];
 
     DLog(@"Loadeding File: ", path);
     
@@ -411,7 +424,7 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
 
             NSLog(@"Cart size: %zd", size >> 10);
             
-            NSArray *16KB_One_Chip = @[@"a47fcb4eedab9418ea098bb431a407aa", // A.E. (Proto)
+            NSArray *One_Chip_16KB = @[@"a47fcb4eedab9418ea098bb431a407aa", // A.E. (Proto)
                                        @"45f8841269313736489180c8ec3e9588", // Activision Decathlon, The
                                        @"1913310b1e44ad7f3b90aeb16790a850", // Beamrider
                                        @"f8973db8dc272c2e5eb7b8dbb5c0cc3b", // BerZerk
@@ -436,7 +449,7 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
                                        @"dc45af8b0996cb6a94188b0be3be2e17"  // Zone Ranger
                                        ];
             
-            NSArray *16KB_Two_Chip = @[@"bae7c1e5eb04e19ef8d0d0b5ce134332", // Astro Chase
+            NSArray *Two_Chip_16KB = @[@"bae7c1e5eb04e19ef8d0d0b5ce134332", // Astro Chase
                                        @"78ccbcbb6b4d17b749ebb012e4878008", // Atari PAM Diagnostics (v2.0)
                                        @"32a6d0de4f1728dee163eb2d4b3f49f1", // Atari PAM Diagnostics (v2.3)
                                        @"8576867c2cfc965cf152be0468f684a7", // Battlezone (Proto)
@@ -476,6 +489,8 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
                                        @"595703dc459cd51fed6e2a191c462969", // Stargate (Proto)
                                        @"4f6c58c28c41f31e3a1515fe1e5d15af"  // Xari Arena (Proto)
                                        ];
+            BOOL is16KBOneChip;
+            is16KBOneChip = NO;
             
             //Tell Atari800 which 5200 cart type to load based on size
             switch (size >> 10) {
@@ -486,10 +501,18 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
                 case 32:
                     CARTRIDGE_main.type = CARTRIDGE_5200_32;
                     break;
-                //case 16:
-                //    CARTRIDGE_type = CARTRIDGE_5200_EE_16; //two chip: congo bongo, etc
                 case 16:
-                    CARTRIDGE_main.type = CARTRIDGE_5200_NS_16; //one chip: chop lifter, miner 2049er, etc
+                    // Determine if 16KB cart is one-chip (NS_16) or two-chip (EE_16)
+                    for (NSString* hash in One_Chip_16KB)
+                    {
+                        if ([md5Hash isEqualToString:hash])
+                        {
+                            is16KBOneChip = YES;
+                            break;
+                        }
+                    }
+                    if (is16KBOneChip) CARTRIDGE_main.type = CARTRIDGE_5200_NS_16;
+                    else CARTRIDGE_main.type = CARTRIDGE_5200_EE_16;
                     break;
                 case 8:
                     CARTRIDGE_main.type = CARTRIDGE_5200_8;
