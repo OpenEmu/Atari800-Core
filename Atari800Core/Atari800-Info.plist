@@ -24,6 +24,8 @@
 	<string>ATR800GameCore</string>
 	<key>OEGameCorePlayerCount</key>
 	<string>1</string>
+	<key>OEGameCoreRequiresFiles</key>
+	<true/>
 	<key>OEProjectURL</key>
 	<string>http://sourceforge.net/projects/atari800/</string>
 	<key>OESystemIdentifiers</key>
