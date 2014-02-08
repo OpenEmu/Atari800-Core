@@ -311,7 +311,7 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
 	return state;
 }
 
-- (BOOL)loadFileAtPath:(NSString*)path
+- (BOOL)loadFileAtPath:(NSString *)path error:(NSError **)error
 {
     //Get the size of the rom so that Atari800 knows which 5200 cart type to load
     NSData* dataObj = [NSData dataWithContentsOfFile:[path stringByStandardizingPath]];
