@@ -2,7 +2,7 @@
  * cfg.c - Emulator Configuration
  *
  * Copyright (c) 1995-1998 David Firth
- * Copyright (c) 1998-2010 Atari800 development team (see DOC/CREDITS)
+ * Copyright (c) 1998-2014 Atari800 development team (see DOC/CREDITS)
  *
  * This file is part of the Atari800 emulator project which emulates
  * the Atari 400, 800, 800XL, 130XE, and 5200 8-bit computers.
@@ -22,6 +22,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 #include "config.h"
+#include "artifact.h"
 #include "atari.h"
 #include <stdlib.h>
 #include "cartridge.h"
@@ -53,6 +54,9 @@
 #endif
 #if SUPPORTS_CHANGE_VIDEOMODE
 #include "videomode.h"
+#endif
+#ifdef SOUND
+#include "sound.h"
 #endif
 
 int CFG_save_on_exit = FALSE;
@@ -188,15 +192,16 @@ int CFG_LoadConfig(const char *alternate_config_filename)
 
 			else if (strcmp(string, "ENABLE_NEW_POKEY") == 0) {
 #ifdef SOUND
-#ifndef SYNCHRONIZED_SOUND
 				POKEYSND_enable_new_pokey = Util_sscanbool(ptr);
-#endif /* SYNCHRONIZED_SOUND */
 #endif /* SOUND */
 			}
 			else if (strcmp(string, "STEREO_POKEY") == 0) {
 #ifdef STEREO_SOUND
 				POKEYSND_stereo_enabled = Util_sscanbool(ptr);
-#endif
+#ifdef SOUND_THIN_API
+				Sound_desired.channels = POKEYSND_stereo_enabled ? 2 : 1;
+#endif /* SOUND_THIN_API */
+#endif /* STEREO_SOUND */
 			}
 			else if (strcmp(string, "SPEAKER_SOUND") == 0) {
 #ifdef CONSOLE_SOUND
@@ -293,6 +298,8 @@ int CFG_LoadConfig(const char *alternate_config_filename)
 #if !defined(BASIC) && !defined(CURSES_BASIC)
 			else if (Colours_ReadConfig(string, ptr)) {
 			}
+			else if (ARTIFACT_ReadConfig(string, ptr)) {
+			}
 			else if (Screen_ReadConfig(string, ptr)) {
 			}
 #endif
@@ -304,6 +311,10 @@ int CFG_LoadConfig(const char *alternate_config_filename)
 			else if (VIDEOMODE_ReadConfig(string, ptr)) {
 			}
 #endif
+#if defined(SOUND) && defined(SOUND_THIN_API)
+			else if (Sound_ReadConfig(string, ptr)) {
+			}
+#endif /* defined(SOUND) && defined(SOUND_THIN_API) */
 			else {
 #ifdef SUPPORTS_PLATFORM_CONFIGURE
 				if (!PLATFORM_Configure(string, ptr)) {
@@ -396,9 +407,7 @@ int CFG_WriteConfig(void)
 #endif
 
 #ifdef SOUND
-#ifndef SYNCHRONIZED_SOUND
 	fprintf(fp, "ENABLE_NEW_POKEY=%d\n", POKEYSND_enable_new_pokey);
-#endif /* SYNCHRONIZED_SOUND */
 #ifdef STEREO_SOUND
 	fprintf(fp, "STEREO_POKEY=%d\n", POKEYSND_stereo_enabled);
 #endif
@@ -429,6 +438,7 @@ int CFG_WriteConfig(void)
 #endif
 #if !defined(BASIC) && !defined(CURSES_BASIC)
 	Colours_WriteConfig(fp);
+	ARTIFACT_WriteConfig(fp);
 	Screen_WriteConfig(fp);
 #endif
 #ifdef NTSC_FILTER
@@ -437,6 +447,9 @@ int CFG_WriteConfig(void)
 #if SUPPORTS_CHANGE_VIDEOMODE
 	VIDEOMODE_WriteConfig(fp);
 #endif
+#if defined(SOUND) && defined(SOUND_THIN_API)
+	Sound_WriteConfig(fp);
+#endif /* defined(SOUND) && defined(SOUND_THIN_API) */
 #ifdef SUPPORTS_PLATFORM_CONFIGSAVE
 	PLATFORM_ConfigSave(fp);
 #endif

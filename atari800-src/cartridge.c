@@ -47,129 +47,75 @@
 
 /* #define DEBUG 1 */
 
-int CARTRIDGE_kb[CARTRIDGE_LAST_SUPPORTED + 1] = {
+int const CARTRIDGE_kb[CARTRIDGE_LAST_SUPPORTED + 1] = {
 	0,
-	8,    /* CARTRIDGE_STD_8 */
-	16,   /* CARTRIDGE_STD_16 */
-	16,   /* CARTRIDGE_OSS_034M_16 */
-	32,   /* CARTRIDGE_5200_32 */
-	32,   /* CARTRIDGE_DB_32 */
-	16,   /* CARTRIDGE_5200_EE_16 */
-	40,   /* CARTRIDGE_5200_40 */
-	64,   /* CARTRIDGE_WILL_64 */
-	64,   /* CARTRIDGE_EXP_64 */
-	64,   /* CARTRIDGE_DIAMOND_64 */
-	64,   /* CARTRIDGE_SDX */
-	32,   /* CARTRIDGE_XEGS_32 */
-	64,   /* CARTRIDGE_XEGS_64 */
-	128,  /* CARTRIDGE_XEGS_128 */
-	16,   /* CARTRIDGE_OSS_M091_16 */
-	16,   /* CARTRIDGE_5200_NS_16 */
-	128,  /* CARTRIDGE_ATRAX_128 */
-	40,   /* CARTRIDGE_BBSB_40 */
-	8,    /* CARTRIDGE_5200_8 */
-	4,    /* CARTRIDGE_5200_4 */
-	8,    /* CARTRIDGE_RIGHT_8 */
-	32,   /* CARTRIDGE_WILL_32 */
-	256,  /* CARTRIDGE_XEGS_256 */
-	512,  /* CARTRIDGE_XEGS_512 */
-	1024, /* CARTRIDGE_XEGS_1024 */
-	16,   /* CARTRIDGE_MEGA_16 */
-	32,   /* CARTRIDGE_MEGA_32 */
-	64,   /* CARTRIDGE_MEGA_64 */
-	128,  /* CARTRIDGE_MEGA_128 */
-	256,  /* CARTRIDGE_MEGA_256 */
-	512,  /* CARTRIDGE_MEGA_512 */
-	1024, /* CARTRIDGE_MEGA_1024 */
-	32,   /* CARTRIDGE_SWXEGS_32 */
-	64,   /* CARTRIDGE_SWXEGS_64 */
-	128,  /* CARTRIDGE_SWXEGS_128 */
-	256,  /* CARTRIDGE_SWXEGS_256 */
-	512,  /* CARTRIDGE_SWXEGS_512 */
-	1024, /* CARTRIDGE_SWXEGS_1024 */
-	8,    /* CARTRIDGE_PHOENIX_8 */
-	16,   /* CARTRIDGE_BLIZZARD_16 */
-	128,  /* CARTRIDGE_ATMAX_128 */
-	1024, /* CARTRIDGE_ATMAX_1024 */
-	128,  /* CARTRIDGE_SDX_128 */
-	8,    /* CARTRIDGE_OSS_8 */
-	16,   /* CARTRIDGE_OSS_043M_16 */
-	4,    /* CARTRIDGE_BLIZZARD_4 */
-	32,   /* CARTRIDGE_AST_32 */
-	64,   /* CARTRIDGE_ATRAX_SDX_64 */
-	128,  /* CARTRIDGE_ATRAX_SDX_128 */
-	64,   /* CARTRIDGE_TURBOSOFT_64 */
-	128,  /* CARTRIDGE_TURBOSOFT_128 */
-	32,   /* CARTRIDGE_ULTRACART_32 */
-	8,    /* CARTRIDGE_LOW_BANK_8 */
-	128,  /* CARTRIDGE_SIC_128 */
-	256,  /* CARTRIDGE_SIC_256 */
-	512,  /* CARTRIDGE_SIC_512 */
-	2,    /* CARTRIDGE_STD_2 */
-	4,    /* CARTRIDGE_STD_4 */
-	4     /* CARTRIDGE_RIGHT_4 */
-};
-
-char *CARTRIDGE_TextDesc[CARTRIDGE_LAST_SUPPORTED + 1] = {
-	[CARTRIDGE_STD_8]			=	"Standard 8 KB cartridge",
-	[CARTRIDGE_STD_16]			=	"Standard 16 KB cartridge",
-	[CARTRIDGE_OSS_034M_16]		=	"OSS two chip 16 KB cartridge (034M)",
-	[CARTRIDGE_5200_32]			=	"Standard 32 KB 5200 cartridge",
-	[CARTRIDGE_DB_32]			=	"DB 32 KB cartridge",
-	[CARTRIDGE_5200_EE_16]		=	"Two chip 16 KB 5200 cartridge",
-	[CARTRIDGE_5200_40]			=	"Bounty Bob 40 KB 5200 cartridge",
-	[CARTRIDGE_WILL_64]			=	"64 KB Williams cartridge",
-	[CARTRIDGE_EXP_64]			=	"Express 64 KB cartridge",
-	[CARTRIDGE_DIAMOND_64]		=	"Diamond 64 KB cartridge",
-	[CARTRIDGE_SDX_64]			=	"SpartaDOS X 64 KB cartridge",
-	[CARTRIDGE_XEGS_32]			=	"XEGS 32 KB cartridge",
-	[CARTRIDGE_XEGS_64]			=	"XEGS 64 KB cartridge",
-	[CARTRIDGE_XEGS_128]		=	"XEGS 128 KB cartridge",
-	[CARTRIDGE_OSS_M091_16]		=	"OSS one chip 16 KB cartridge",
-	[CARTRIDGE_5200_NS_16]		=	"One chip 16 KB 5200 cartridge",
-	[CARTRIDGE_ATRAX_128]		=	"Atrax 128 KB cartridge",
-	[CARTRIDGE_BBSB_40]			=	"Bounty Bob 40 KB cartridge",
-	[CARTRIDGE_5200_8]			=	"Standard 8 KB 5200 cartridge",
-	[CARTRIDGE_5200_4]			=	"Standard 4 KB 5200 cartridge",
-	[CARTRIDGE_RIGHT_8]			=	"Right slot 8 KB cartridge",
-	[CARTRIDGE_WILL_32]			=	"32 KB Williams cartridge",
-	[CARTRIDGE_XEGS_256]		=	"XEGS 256 KB cartridge",
-	[CARTRIDGE_XEGS_512]		=	"XEGS 512 KB cartridge",
-	[CARTRIDGE_XEGS_1024]		=	"XEGS 1 MB cartridge",
-	[CARTRIDGE_MEGA_16]			=	"MegaCart 16 KB cartridge",
-	[CARTRIDGE_MEGA_32]			=	"MegaCart 32 KB cartridge",
-	[CARTRIDGE_MEGA_64]			=	"MegaCart 64 KB cartridge",
-	[CARTRIDGE_MEGA_128]		=	"MegaCart 128 KB cartridge",
-	[CARTRIDGE_MEGA_256]		=	"MegaCart 256 KB cartridge",
-	[CARTRIDGE_MEGA_512]		=	"MegaCart 512 KB cartridge",
-	[CARTRIDGE_MEGA_1024]		=	"MegaCart 1 MB cartridge",
-	[CARTRIDGE_SWXEGS_32]		=	"Switchable XEGS 32 KB cartridge",
-	[CARTRIDGE_SWXEGS_64]		=	"Switchable XEGS 64 KB cartridge",
-	[CARTRIDGE_SWXEGS_128]		=	"Switchable XEGS 128 KB cartridge",
-	[CARTRIDGE_SWXEGS_256]		=	"Switchable XEGS 256 KB cartridge",
-	[CARTRIDGE_SWXEGS_512]		=	"Switchable XEGS 512 KB cartridge",
-	[CARTRIDGE_SWXEGS_1024]		=	"Switchable XEGS 1 MB cartridge",
-	[CARTRIDGE_PHOENIX_8]		=	"Phoenix 8 KB cartridge",
-	[CARTRIDGE_BLIZZARD_16]		=	"Blizzard 16 KB cartridge",
-	[CARTRIDGE_ATMAX_128]		=	"Atarimax 128 KB Flash cartridge",
-	[CARTRIDGE_ATMAX_1024]		=	"Atarimax 1 MB Flash cartridge",
-	[CARTRIDGE_SDX_128]			=	"SpartaDOS X 128 KB cartridge",
-	[CARTRIDGE_OSS_8]			=	"OSS 8 KB cartridge",
-	[CARTRIDGE_OSS_043M_16]		=	"OSS two chip 16 KB cartridge (043M)",
-	[CARTRIDGE_BLIZZARD_4]		=	"Blizzard 4 KB cartridge",
-	[CARTRIDGE_AST_32]			=	"AST 32 KB cartridge",
-	[CARTRIDGE_ATRAX_SDX_64]	=	"Atrax SDX 64 KB cartridge",
-	[CARTRIDGE_ATRAX_SDX_128]	=	"Atrax SDX 128 KB cartridge",
-	[CARTRIDGE_TURBOSOFT_64]	=	"Turbosoft 64 KB cartridge",
-	[CARTRIDGE_TURBOSOFT_128]	=	"Turbosoft 128 KB cartridge",
-	[CARTRIDGE_ULTRACART_32]	=	"Ultracart 32 KB cartridge",
-	[CARTRIDGE_LOW_BANK_8]		=	"Low bank 8 KB cartridge",
-	[CARTRIDGE_SIC_128]			=	"SIC! 128 KB cartridge",
-	[CARTRIDGE_SIC_256]			=	"SIC! 256 KB cartridge",
-	[CARTRIDGE_SIC_512]			=	"SIC! 512 KB cartridge",
-	[CARTRIDGE_STD_2]			=	"Standard 2 KB cartridge",
-	[CARTRIDGE_STD_4]			=	"Standard 4 KB cartridge",
-	[CARTRIDGE_RIGHT_4]			=	"Right slot 4 KB cartridge"
+	8,        /* CARTRIDGE_STD_8 */
+	16,       /* CARTRIDGE_STD_16 */
+	16,       /* CARTRIDGE_OSS_034M_16 */
+	32,       /* CARTRIDGE_5200_32 */
+	32,       /* CARTRIDGE_DB_32 */
+	16,       /* CARTRIDGE_5200_EE_16 */
+	40,       /* CARTRIDGE_5200_40 */
+	64,       /* CARTRIDGE_WILL_64 */
+	64,       /* CARTRIDGE_EXP_64 */
+	64,       /* CARTRIDGE_DIAMOND_64 */
+	64,       /* CARTRIDGE_SDX_64 */
+	32,       /* CARTRIDGE_XEGS_32 */
+	64,       /* CARTRIDGE_XEGS_64_07 */
+	128,      /* CARTRIDGE_XEGS_128 */
+	16,       /* CARTRIDGE_OSS_M091_16 */
+	16,       /* CARTRIDGE_5200_NS_16 */
+	128,      /* CARTRIDGE_ATRAX_128 */
+	40,       /* CARTRIDGE_BBSB_40 */
+	8,        /* CARTRIDGE_5200_8 */
+	4,        /* CARTRIDGE_5200_4 */
+	8,        /* CARTRIDGE_RIGHT_8 */
+	32,       /* CARTRIDGE_WILL_32 */
+	256,      /* CARTRIDGE_XEGS_256 */
+	512,      /* CARTRIDGE_XEGS_512 */
+	1024,     /* CARTRIDGE_XEGS_1024 */
+	16,       /* CARTRIDGE_MEGA_16 */
+	32,       /* CARTRIDGE_MEGA_32 */
+	64,       /* CARTRIDGE_MEGA_64 */
+	128,      /* CARTRIDGE_MEGA_128 */
+	256,      /* CARTRIDGE_MEGA_256 */
+	512,      /* CARTRIDGE_MEGA_512 */
+	1024,     /* CARTRIDGE_MEGA_1024 */
+	32,       /* CARTRIDGE_SWXEGS_32 */
+	64,       /* CARTRIDGE_SWXEGS_64 */
+	128,      /* CARTRIDGE_SWXEGS_128 */
+	256,      /* CARTRIDGE_SWXEGS_256 */
+	512,      /* CARTRIDGE_SWXEGS_512 */
+	1024,     /* CARTRIDGE_SWXEGS_1024 */
+	8,        /* CARTRIDGE_PHOENIX_8 */
+	16,       /* CARTRIDGE_BLIZZARD_16 */
+	128,      /* CARTRIDGE_ATMAX_128 */
+	1024,     /* CARTRIDGE_ATMAX_1024 */
+	128,      /* CARTRIDGE_SDX_128 */
+	8,        /* CARTRIDGE_OSS_8 */
+	16,       /* CARTRIDGE_OSS_043M_16 */
+	4,        /* CARTRIDGE_BLIZZARD_4 */
+	32,       /* CARTRIDGE_AST_32 */
+	64,       /* CARTRIDGE_ATRAX_SDX_64 */
+	128,      /* CARTRIDGE_ATRAX_SDX_128 */
+	64,       /* CARTRIDGE_TURBOSOFT_64 */
+	128,      /* CARTRIDGE_TURBOSOFT_128 */
+	32,       /* CARTRIDGE_ULTRACART_32 */
+	8,        /* CARTRIDGE_LOW_BANK_8 */
+	128,      /* CARTRIDGE_SIC_128 */
+	256,      /* CARTRIDGE_SIC_256 */
+	512,      /* CARTRIDGE_SIC_512 */
+	2,        /* CARTRIDGE_STD_2 */
+	4,        /* CARTRIDGE_STD_4 */
+	4,        /* CARTRIDGE_RIGHT_4 */
+	32,       /* CARTRIDGE_TURBO_HIT_32 */
+	2048,     /* CARTRIDGE_MEGA_2048 */
+	128*1024, /* CARTRIDGE_THECART_128M */
+	4096,     /* CARTRIDGE_MEGA_4096 */
+	2048,     /* CARTRIDGE_MEGA_2048 */
+	32*1024,  /* CARTRIDGE_THECART_32M */
+	64*1024,  /* CARTRIDGE_THECART_64M */
+	64        /* CARTRIDGE_XEGS_64_8F */
 };
 
 int CARTRIDGE_autoreboot = TRUE;
@@ -204,7 +150,7 @@ CARTRIDGE_image_t CARTRIDGE_piggyback = { CARTRIDGE_NONE, 0, 0, NULL, "" }; /* P
    cartridge is a SpartaDOS X. */
 static CARTRIDGE_image_t *active_cart = &CARTRIDGE_main;
 
-/* DB_32, XEGS_32, XEGS_64, XEGS_128, XEGS_256, XEGS_512, XEGS_1024,
+/* DB_32, XEGS_32, XEGS_07_64, XEGS_128, XEGS_256, XEGS_512, XEGS_1024,
    SWXEGS_32, SWXEGS_64, SWXEGS_128, SWXEGS_256, SWXEGS_512, SWXEGS_1024 */
 static void set_bank_809F(int main, int old_state)
 {
@@ -219,6 +165,16 @@ static void set_bank_809F(int main, int old_state)
 		if (old_state & 0x80)
 			MEMORY_CopyROM(0xa000, 0xbfff, active_cart->image + main);
 	}
+}
+
+/* XEGS_8F_64 */
+static void set_bank_XEGS_8F_64(void)
+{
+	if (active_cart->state & 0x08)
+		MEMORY_CopyROM(0x8000, 0x9fff, active_cart->image + (active_cart->state & ~0x08) * 0x2000);
+	else
+		/* $8000-$9FFF is left unconnected. */
+		MEMORY_dFillMem(0x8000, 0xff, 0x2000);
 }
 
 /* OSS_034M_16, OSS_043M_16, OSS_M091_16, OSS_8 */
@@ -239,18 +195,20 @@ static void set_bank_A0AF(int main, int old_state)
 }
 
 /* WILL_64, EXP_64, DIAMOND_64, SDX_64, WILL_32, ATMAX_128, ATMAX_1024,
-   ATRAX_128, ATRAX_SDX_64, TURBOSOFT_64, TURBOSOFT_128 */
-static void set_bank_A0BF(int n)
+   ATRAX_128, ATRAX_SDX_64, TURBOSOFT_64, TURBOSOFT_128, ULTRACART_32,
+   TURBO_HIT_32, THECART_128M, THECART_32M, THECART_64M */
+static void set_bank_A0BF(int disable_mask, int bank_mask)
 {
-	if (active_cart->state & n)
+	if (active_cart->state & disable_mask)
 		MEMORY_CartA0bfDisable();
 	else {
 		MEMORY_CartA0bfEnable();
-		MEMORY_CopyROM(0xa000, 0xbfff, active_cart->image + (active_cart->state & (n - 1)) * 0x2000);
+		MEMORY_CopyROM(0xa000, 0xbfff, active_cart->image + (active_cart->state & bank_mask) * 0x2000);
 	}
 }
 
-/* MEGA_16, MEGA_32, MEGA_64, MEGA_128, MEGA_256, MEGA_512, MEGA_1024 */
+/* MEGA_16, MEGA_32, MEGA_64, MEGA_128, MEGA_256, MEGA_512, MEGA_1024,
+   MEGAMAX_2048, MEGA_2048 */
 static void set_bank_80BF(void)
 {
 	if (active_cart->state & 0x80) {
@@ -260,7 +218,7 @@ static void set_bank_80BF(void)
 	else {
 		MEMORY_Cart809fEnable();
 		MEMORY_CartA0bfEnable();
-		MEMORY_CopyROM(0x8000, 0xbfff, active_cart->image + active_cart->state * 0x4000);
+		MEMORY_CopyROM(0x8000, 0xbfff, active_cart->image + (active_cart->state & 0x7f) * 0x4000);
 	}
 }
 
@@ -292,6 +250,19 @@ static void set_bank_SIC(int n)
 	}
 }
 
+/* MEGA_4096 */
+static void set_bank_MEGA_4096(void)
+{
+	if (active_cart->state == 0xff) {
+		MEMORY_Cart809fDisable();
+		MEMORY_CartA0bfDisable();
+	}
+	else {
+		MEMORY_Cart809fEnable();
+		MEMORY_CartA0bfEnable();
+		MEMORY_CopyROM(0x8000, 0xbfff, active_cart->image + active_cart->state * 0x4000);
+	}
+}
 /* Called on a read or write operation to page $D5. Switches banks or
    enables/disables the cartridge pointed to by *active_cart. */
 static void SwitchBank(int old_state)
@@ -315,16 +286,19 @@ static void SwitchBank(int old_state)
 	case CARTRIDGE_SDX_64:
 	case CARTRIDGE_WILL_32:
 	case CARTRIDGE_ATRAX_SDX_64:
-		set_bank_A0BF(8);
+		set_bank_A0BF(8, 7);
 		break;
 	case CARTRIDGE_DB_32:
 	case CARTRIDGE_XEGS_32:
 	case CARTRIDGE_SWXEGS_32:
 		set_bank_809F(0x6000, old_state);
 		break;
-	case CARTRIDGE_XEGS_64:
+	case CARTRIDGE_XEGS_07_64:
 	case CARTRIDGE_SWXEGS_64:
 		set_bank_809F(0xe000, old_state);
+		break;
+	case CARTRIDGE_XEGS_8F_64:
+		set_bank_XEGS_8F_64();
 		break;
 	case CARTRIDGE_XEGS_128:
 	case CARTRIDGE_SWXEGS_128:
@@ -344,12 +318,12 @@ static void SwitchBank(int old_state)
 		break;
 	case CARTRIDGE_ATRAX_128:
 	case CARTRIDGE_ATMAX_1024:
-		set_bank_A0BF(128);
+		set_bank_A0BF(0x80, 0x7f);
 		break;
 	case CARTRIDGE_ATMAX_128:
 	case CARTRIDGE_TURBOSOFT_64:
 	case CARTRIDGE_TURBOSOFT_128:
-		set_bank_A0BF(16);
+		set_bank_A0BF(0x10, 0x0f);
 		break;
 	case CARTRIDGE_MEGA_16:
 	case CARTRIDGE_MEGA_32:
@@ -358,6 +332,8 @@ static void SwitchBank(int old_state)
 	case CARTRIDGE_MEGA_256:
 	case CARTRIDGE_MEGA_512:
 	case CARTRIDGE_MEGA_1024:
+	case CARTRIDGE_MEGA_2048:
+	case CARTRIDGE_MEGAMAX_2048:
 		set_bank_80BF();
 		break;
 	case CARTRIDGE_PHOENIX_8:
@@ -381,7 +357,8 @@ static void SwitchBank(int old_state)
 			MEMORY_CartA0bfDisable();
 		break;
 	case CARTRIDGE_ULTRACART_32:
-		set_bank_A0BF(4);
+	case CARTRIDGE_BLIZZARD_32:
+		set_bank_A0BF(4, 3);
 		break;
 	case CARTRIDGE_SIC_128:
 		set_bank_SIC(0x07);
@@ -391,6 +368,18 @@ static void SwitchBank(int old_state)
 		break;
 	case CARTRIDGE_SIC_512:
 		set_bank_SIC(0x1f);
+		break;
+	case CARTRIDGE_MEGA_4096:
+		set_bank_MEGA_4096();
+		break;
+	case CARTRIDGE_THECART_128M:
+		set_bank_A0BF(0x4000, 0x3fff);
+		break;
+	case CARTRIDGE_THECART_32M:
+		set_bank_A0BF(0x4000, 0x0fff);
+		break;
+	case CARTRIDGE_THECART_64M:
+		set_bank_A0BF(0x4000, 0x1fff);
 		break;
 	}
 #if DEBUG
@@ -519,6 +508,10 @@ static void MapActiveCart(void)
 		case CARTRIDGE_TURBOSOFT_64:
 		case CARTRIDGE_TURBOSOFT_128:
 		case CARTRIDGE_ULTRACART_32:
+		case CARTRIDGE_BLIZZARD_32:
+		case CARTRIDGE_THECART_128M:
+		case CARTRIDGE_THECART_32M:
+		case CARTRIDGE_THECART_64M:
 			MEMORY_Cart809fDisable();
 			break;
 		case CARTRIDGE_DB_32:
@@ -529,8 +522,9 @@ static void MapActiveCart(void)
 				MEMORY_CopyROM(0xa000, 0xbfff, active_cart->image + 0x6000);
 			}
 			break;
-		case CARTRIDGE_XEGS_64:
+		case CARTRIDGE_XEGS_07_64:
 		case CARTRIDGE_SWXEGS_64:
+		case CARTRIDGE_XEGS_8F_64:
 			if (!(active_cart->state & 0x80)) {
 				MEMORY_CartA0bfEnable();
 				MEMORY_CopyROM(0xa000, 0xbfff, active_cart->image + 0xe000);
@@ -634,9 +628,12 @@ static void MapActiveCart(void)
 		case CARTRIDGE_MEGA_256:
 		case CARTRIDGE_MEGA_512:
 		case CARTRIDGE_MEGA_1024:
+		case CARTRIDGE_MEGA_2048:
+		case CARTRIDGE_MEGA_4096:
 		case CARTRIDGE_SIC_128:
 		case CARTRIDGE_SIC_256:
 		case CARTRIDGE_SIC_512:
+		case CARTRIDGE_MEGAMAX_2048:
 			break;
 		default:
 			MEMORY_Cart809fDisable();
@@ -847,6 +844,7 @@ static int access_D5(CARTRIDGE_image_t *cart, UWORD addr, int *state)
 		new_state = addr & 0x17;
 		break;
 	case CARTRIDGE_ATMAX_1024:
+	case CARTRIDGE_MEGAMAX_2048:
 		new_state = addr;
 		break;
 	case CARTRIDGE_OSS_8:
@@ -866,6 +864,10 @@ static int access_D5(CARTRIDGE_image_t *cart, UWORD addr, int *state)
 	case CARTRIDGE_ULTRACART_32:
 		new_state = (old_state + 1) % 5;
 		break;
+	case CARTRIDGE_BLIZZARD_32:
+		if (old_state < 4)
+			new_state = old_state + 1;
+		break;
 	default:
 		/* Other cartridge types don't support enabling/disabling/banking through page D5. */
 		return FALSE;
@@ -878,7 +880,7 @@ static int access_D5(CARTRIDGE_image_t *cart, UWORD addr, int *state)
 static UBYTE GetByte(CARTRIDGE_image_t *cart, UWORD addr, int no_side_effects)
 {
 	int old_state = cart->state;
-	int new_state;
+	int new_state = old_state;
 
 #if DEBUG
 	if (cart->type > CARTRIDGE_NONE)
@@ -905,9 +907,22 @@ static UBYTE GetByte(CARTRIDGE_image_t *cart, UWORD addr, int no_side_effects)
 	case CARTRIDGE_SIC_512:
 	case CARTRIDGE_SIC_256:
 	case CARTRIDGE_SIC_128:
+	case CARTRIDGE_MEGA_4096:
 		/* Only react to access to $D50x/$D51x. */
 		if ((addr & 0xe0) == 0x00)
 			return cart->state;
+		break;
+	case CARTRIDGE_THECART_128M:
+	case CARTRIDGE_THECART_32M:
+	case CARTRIDGE_THECART_64M:
+		switch (addr) {
+		case 0xd5a0:
+			return cart->state & 0x00ff;
+		case 0xd5a1:
+			return (cart->state & 0x3f00) >> 8;
+		case 0xd5a2:
+			return (~cart->state & 0x4000) >> 14;
+		}
 		break;
 	}
 	return 0xff;
@@ -917,7 +932,7 @@ static UBYTE GetByte(CARTRIDGE_image_t *cart, UWORD addr, int no_side_effects)
 static void PutByte(CARTRIDGE_image_t *cart, UWORD addr, UBYTE byte)
 {
 	int old_state = cart->state;
-	int new_state;
+	int new_state = old_state;
 
 #if DEBUG
 	if (cart->type > CARTRIDGE_NONE)
@@ -928,10 +943,11 @@ static void PutByte(CARTRIDGE_image_t *cart, UWORD addr, UBYTE byte)
 	case CARTRIDGE_XEGS_32:
 		new_state = byte & 0x03;
 		break;
-	case CARTRIDGE_XEGS_64:
+	case CARTRIDGE_XEGS_07_64:
 		new_state = byte & 0x07;
 		break;
 	case CARTRIDGE_XEGS_128:
+	case CARTRIDGE_XEGS_8F_64:
 		new_state = byte & 0x0f;
 		break;
 	case CARTRIDGE_XEGS_256:
@@ -970,6 +986,7 @@ static void PutByte(CARTRIDGE_image_t *cart, UWORD addr, UBYTE byte)
 	case CARTRIDGE_SWXEGS_512:
 		new_state = byte & 0xbf;
 		break;
+	case CARTRIDGE_MEGA_2048:
 	case CARTRIDGE_SWXEGS_1024:
 		new_state = byte;
 		break;
@@ -980,9 +997,25 @@ static void PutByte(CARTRIDGE_image_t *cart, UWORD addr, UBYTE byte)
 	case CARTRIDGE_SIC_512:
 	case CARTRIDGE_SIC_256:
 	case CARTRIDGE_SIC_128:
+	case CARTRIDGE_MEGA_4096:
 		/* Only react to access to $D50x/$D51x. */
 		if ((addr & 0xe0) == 0x00)
 			new_state = byte;
+		break;
+	case CARTRIDGE_THECART_128M:
+	case CARTRIDGE_THECART_32M:
+	case CARTRIDGE_THECART_64M:
+		switch (addr) {
+		case 0xd5a0:
+			new_state = (old_state & 0x3f00) | byte;
+			break;
+		case 0xd5a1:
+			new_state = (old_state & 0x00ff) | ((byte & 0x3f) << 8);
+			break;
+		case 0xd5a2:
+			new_state = (old_state & 0x3fff) | ((~byte & 0x01) << 14);
+			break;
+		}
 		break;
 	default:
 		/* Check types switchable by access to page D5. */
@@ -1166,6 +1199,9 @@ static void ResetCartState(CARTRIDGE_image_t *cart)
 		/* A special value of 0x10000 indicates the cartridge is
 		   enabled and the current bank is 0. */
 		cart->state = 0x10000;
+		break;
+	case CARTRIDGE_MEGA_4096:
+		cart->state = 254;
 		break;
 	default:
 		cart->state = 0;

@@ -26,7 +26,9 @@
 #include <string.h>
 
 #include "antic.h"
+#include "binload.h"
 #include "cassette.h"
+#include "cpu.h"
 #include "gtia.h"
 #ifndef BASIC
 #include "input.h"
@@ -79,8 +81,8 @@ UBYTE GTIA_GRACTL;
 /* Internal GTIA state ----------------------------------------------------- */
 
 int GTIA_speaker;
-int GTIA_consol_index = 0;
-UBYTE GTIA_consol_table[3];
+int GTIA_consol_override = 0;
+static UBYTE consol;
 UBYTE consol_mask;
 UBYTE GTIA_TRIG[4];
 UBYTE GTIA_TRIG_latch[4];
@@ -415,13 +417,10 @@ void GTIA_NewPmScanline(void)
 void GTIA_Frame(void)
 {
 #ifdef BASIC
-	int consol = 0xf;
+	consol = 0xf;
 #else
-	int consol = INPUT_key_consol | 0x08;
+	consol = INPUT_key_consol | 0x08;
 #endif
-
-	GTIA_consol_table[0] = consol;
-	GTIA_consol_table[1] = GTIA_consol_table[2] &= consol;
 
 	if (GTIA_GRACTL & 4) {
 		GTIA_TRIG_latch[0] &= GTIA_TRIG[0];
@@ -519,13 +518,27 @@ UBYTE GTIA_GetByte(UWORD addr, int no_side_effects)
 		return (Atari800_tv_mode == Atari800_TV_PAL) ? 0x01 : 0x0f;
 	case GTIA_OFFSET_CONSOL:
 		{
-			UBYTE byte = GTIA_consol_table[GTIA_consol_index] & consol_mask;
-			if (!no_side_effects && GTIA_consol_index > 0) {
-				GTIA_consol_index--;
-				if (GTIA_consol_index == 0 && CASSETTE_hold_start) {
-					/* press Space after Start to start cassette boot */
-					CASSETTE_press_space = 1;
-					CASSETTE_hold_start = CASSETTE_hold_start_on_reboot;
+			UBYTE byte = consol & consol_mask;
+			if (!no_side_effects && GTIA_consol_override > 0) {
+				/* Check if we're called from outside OS. This avoids sending
+				   console keystrokes to diagnostic cartridges. */
+				if (CPU_regPC < 0xc000)
+					/* Not from OS. Disable console override. */
+					GTIA_consol_override = 0;
+				else {
+				--GTIA_consol_override;
+					if (Atari800_builtin_basic && Atari800_disable_basic && !BINLOAD_loading_basic)
+						/* Only for XL/XE - hold Option during reboot. */
+						byte &= ~INPUT_CONSOL_OPTION;
+					if (CASSETTE_hold_start && Atari800_machine_type != Atari800_MACHINE_5200) {
+						/* Only for the computers - hold Start during reboot. */
+						byte &= ~INPUT_CONSOL_START;
+						if (GTIA_consol_override == 0) {
+							/* press Space after Start to start cassette boot. */
+							CASSETTE_press_space = 1;
+							CASSETTE_hold_start = CASSETTE_hold_start_on_reboot;
+						}
+					}
 				}
 			}
 			return byte;
@@ -1119,14 +1132,6 @@ void GTIA_PutByte(UWORD addr, UBYTE byte)
 		UPDATE_PM_CYCLE_EXACT
 		break;
 	case GTIA_OFFSET_PRIOR:
-#ifdef NEW_CYCLE_EXACT
-#ifndef NO_GTIA11_DELAY
-		/* update prior change ring buffer */
-  		ANTIC_prior_curpos = (ANTIC_prior_curpos + 1) % ANTIC_PRIOR_BUF_SIZE;
-		ANTIC_prior_pos_buf[ANTIC_prior_curpos] = ANTIC_XPOS * 2 - 37 + 2;
-		ANTIC_prior_val_buf[ANTIC_prior_curpos] = byte;
-#endif
-#endif
 		ANTIC_SetPrior(byte);
 		GTIA_PRIOR = byte;
 		if (byte & 0x40)

@@ -2,7 +2,7 @@
  * ui.c - main user interface
  *
  * Copyright (C) 1995-1998 David Firth
- * Copyright (C) 1998-2011 Atari800 development team (see DOC/CREDITS)
+ * Copyright (C) 1998-2014 Atari800 development team (see DOC/CREDITS)
  *
  * This file is part of the Atari800 emulator project which emulates
  * the Atari 400, 800, 800XL, 130XE, and 5200 8-bit computers.
@@ -31,6 +31,7 @@
 
 #include "afile.h"
 #include "antic.h"
+#include "artifact.h"
 #include "atari.h"
 #include "binload.h"
 #include "cartridge.h"
@@ -54,6 +55,9 @@
 #include "akey.h"
 #include "log.h"
 #include "memory.h"
+#ifdef PAL_BLENDING
+#include "pal_blending.h"
+#endif /* PAL_BLENDING */
 #include "platform.h"
 #include "rtime.h"
 #include "screen.h"
@@ -149,6 +153,11 @@ extern void update_screen_updater(void);
 extern void do_hz_test(void);
 #endif /* HZ_TEST */
 #endif /* DREAMCAST */
+
+#ifdef RPI
+extern int op_filtering;
+extern float op_zoom;
+#endif /* RPI */
 
 UI_tDriver *UI_driver = &UI_BASIC_driver;
 
@@ -434,7 +443,7 @@ static void SystemSettings(void)
 				if (auto_xegame == -1)
 					menu_array[4].suffix = "ROM missing";
 				else {
-					sprintf(default_xegame_label, "%s (auto)", FindMenuItem(basic_menu_array, auto_xegame)->item);
+					sprintf(default_xegame_label, "%s (auto)", FindMenuItem(xegame_menu_array, auto_xegame)->item);
 					menu_array[4].suffix = default_xegame_label;
 				}
 			}
@@ -966,66 +975,74 @@ static void DiskManagement(void)
 
 int UI_SelectCartType(int k)
 {
-	UI_tMenuItem menu_array[] = {
-		UI_MENU_ACTION(CARTRIDGE_STD_8, CARTRIDGE_TextDesc[CARTRIDGE_STD_8]),
-		UI_MENU_ACTION(CARTRIDGE_STD_16, CARTRIDGE_TextDesc[CARTRIDGE_STD_16]),
-		UI_MENU_ACTION(CARTRIDGE_OSS_034M_16, CARTRIDGE_TextDesc[CARTRIDGE_OSS_034M_16]),
-		UI_MENU_ACTION(CARTRIDGE_5200_32, CARTRIDGE_TextDesc[CARTRIDGE_5200_32]),
-		UI_MENU_ACTION(CARTRIDGE_DB_32, CARTRIDGE_TextDesc[CARTRIDGE_DB_32]),
-		UI_MENU_ACTION(CARTRIDGE_5200_EE_16, CARTRIDGE_TextDesc[CARTRIDGE_5200_EE_16]),
-		UI_MENU_ACTION(CARTRIDGE_5200_40, CARTRIDGE_TextDesc[CARTRIDGE_5200_40]),
-		UI_MENU_ACTION(CARTRIDGE_WILL_64, CARTRIDGE_TextDesc[CARTRIDGE_WILL_64]),
-		UI_MENU_ACTION(CARTRIDGE_EXP_64, CARTRIDGE_TextDesc[CARTRIDGE_EXP_64]),
-		UI_MENU_ACTION(CARTRIDGE_DIAMOND_64, CARTRIDGE_TextDesc[CARTRIDGE_DIAMOND_64]),
-		UI_MENU_ACTION(CARTRIDGE_SDX_64, CARTRIDGE_TextDesc[CARTRIDGE_SDX_64]),
-		UI_MENU_ACTION(CARTRIDGE_XEGS_32, CARTRIDGE_TextDesc[CARTRIDGE_XEGS_32]),
-		UI_MENU_ACTION(CARTRIDGE_XEGS_64, CARTRIDGE_TextDesc[CARTRIDGE_XEGS_64]),
-		UI_MENU_ACTION(CARTRIDGE_XEGS_128, CARTRIDGE_TextDesc[CARTRIDGE_XEGS_128]),
-		UI_MENU_ACTION(CARTRIDGE_OSS_M091_16, CARTRIDGE_TextDesc[CARTRIDGE_OSS_M091_16]),
-		UI_MENU_ACTION(CARTRIDGE_5200_NS_16, CARTRIDGE_TextDesc[CARTRIDGE_5200_NS_16]),
-		UI_MENU_ACTION(CARTRIDGE_ATRAX_128, CARTRIDGE_TextDesc[CARTRIDGE_ATRAX_128]),
-		UI_MENU_ACTION(CARTRIDGE_BBSB_40, CARTRIDGE_TextDesc[CARTRIDGE_BBSB_40]),
-		UI_MENU_ACTION(CARTRIDGE_5200_8, CARTRIDGE_TextDesc[CARTRIDGE_5200_8]),
-		UI_MENU_ACTION(CARTRIDGE_5200_4, CARTRIDGE_TextDesc[CARTRIDGE_5200_4]),
-		UI_MENU_ACTION(CARTRIDGE_RIGHT_8, CARTRIDGE_TextDesc[CARTRIDGE_RIGHT_8]),
-		UI_MENU_ACTION(CARTRIDGE_WILL_32, CARTRIDGE_TextDesc[CARTRIDGE_WILL_32]),
-		UI_MENU_ACTION(CARTRIDGE_XEGS_256, CARTRIDGE_TextDesc[CARTRIDGE_XEGS_256]),
-		UI_MENU_ACTION(CARTRIDGE_XEGS_512, CARTRIDGE_TextDesc[CARTRIDGE_XEGS_512]),
-		UI_MENU_ACTION(CARTRIDGE_XEGS_1024, CARTRIDGE_TextDesc[CARTRIDGE_XEGS_1024]),
-		UI_MENU_ACTION(CARTRIDGE_MEGA_16, CARTRIDGE_TextDesc[CARTRIDGE_MEGA_16]),
-		UI_MENU_ACTION(CARTRIDGE_MEGA_32, CARTRIDGE_TextDesc[CARTRIDGE_MEGA_32]),
-		UI_MENU_ACTION(CARTRIDGE_MEGA_64, CARTRIDGE_TextDesc[CARTRIDGE_MEGA_64]),
-		UI_MENU_ACTION(CARTRIDGE_MEGA_128, CARTRIDGE_TextDesc[CARTRIDGE_MEGA_128]),
-		UI_MENU_ACTION(CARTRIDGE_MEGA_256, CARTRIDGE_TextDesc[CARTRIDGE_MEGA_256]),
-		UI_MENU_ACTION(CARTRIDGE_MEGA_512, CARTRIDGE_TextDesc[CARTRIDGE_MEGA_512]),
-		UI_MENU_ACTION(CARTRIDGE_MEGA_1024, CARTRIDGE_TextDesc[CARTRIDGE_MEGA_1024]),
-		UI_MENU_ACTION(CARTRIDGE_SWXEGS_32, CARTRIDGE_TextDesc[CARTRIDGE_SWXEGS_32]),
-		UI_MENU_ACTION(CARTRIDGE_SWXEGS_64, CARTRIDGE_TextDesc[CARTRIDGE_SWXEGS_64]),
-		UI_MENU_ACTION(CARTRIDGE_SWXEGS_128, CARTRIDGE_TextDesc[CARTRIDGE_SWXEGS_128]),
-		UI_MENU_ACTION(CARTRIDGE_SWXEGS_256, CARTRIDGE_TextDesc[CARTRIDGE_SWXEGS_256]),
-		UI_MENU_ACTION(CARTRIDGE_SWXEGS_512, CARTRIDGE_TextDesc[CARTRIDGE_SWXEGS_512]),
-		UI_MENU_ACTION(CARTRIDGE_SWXEGS_1024, CARTRIDGE_TextDesc[CARTRIDGE_SWXEGS_1024]),
-		UI_MENU_ACTION(CARTRIDGE_PHOENIX_8, CARTRIDGE_TextDesc[CARTRIDGE_PHOENIX_8]),
-		UI_MENU_ACTION(CARTRIDGE_BLIZZARD_16, CARTRIDGE_TextDesc[CARTRIDGE_BLIZZARD_16]),
-		UI_MENU_ACTION(CARTRIDGE_ATMAX_128, CARTRIDGE_TextDesc[CARTRIDGE_ATMAX_128]),
-		UI_MENU_ACTION(CARTRIDGE_ATMAX_1024, CARTRIDGE_TextDesc[CARTRIDGE_ATMAX_1024]),
-		UI_MENU_ACTION(CARTRIDGE_SDX_128, CARTRIDGE_TextDesc[CARTRIDGE_SDX_128]),
-		UI_MENU_ACTION(CARTRIDGE_OSS_8, CARTRIDGE_TextDesc[CARTRIDGE_OSS_8]),
-		UI_MENU_ACTION(CARTRIDGE_OSS_043M_16, CARTRIDGE_TextDesc[CARTRIDGE_OSS_043M_16]),
-		UI_MENU_ACTION(CARTRIDGE_BLIZZARD_4, CARTRIDGE_TextDesc[CARTRIDGE_BLIZZARD_4]),
-		UI_MENU_ACTION(CARTRIDGE_AST_32, CARTRIDGE_TextDesc[CARTRIDGE_AST_32]),
-		UI_MENU_ACTION(CARTRIDGE_ATRAX_SDX_64, CARTRIDGE_TextDesc[CARTRIDGE_ATRAX_SDX_64]),
-		UI_MENU_ACTION(CARTRIDGE_ATRAX_SDX_128, CARTRIDGE_TextDesc[CARTRIDGE_ATRAX_SDX_128]),
-		UI_MENU_ACTION(CARTRIDGE_TURBOSOFT_64, CARTRIDGE_TextDesc[CARTRIDGE_TURBOSOFT_64]),
-		UI_MENU_ACTION(CARTRIDGE_TURBOSOFT_128, CARTRIDGE_TextDesc[CARTRIDGE_TURBOSOFT_128]),
-		UI_MENU_ACTION(CARTRIDGE_ULTRACART_32, CARTRIDGE_TextDesc[CARTRIDGE_ULTRACART_32]),
-		UI_MENU_ACTION(CARTRIDGE_LOW_BANK_8, CARTRIDGE_TextDesc[CARTRIDGE_LOW_BANK_8]),
-		UI_MENU_ACTION(CARTRIDGE_SIC_128, CARTRIDGE_TextDesc[CARTRIDGE_SIC_128]),
-		UI_MENU_ACTION(CARTRIDGE_SIC_256, CARTRIDGE_TextDesc[CARTRIDGE_SIC_256]),
-		UI_MENU_ACTION(CARTRIDGE_SIC_512, CARTRIDGE_TextDesc[CARTRIDGE_SIC_512]),
-		UI_MENU_ACTION(CARTRIDGE_STD_2, CARTRIDGE_TextDesc[CARTRIDGE_STD_2]),
-		UI_MENU_ACTION(CARTRIDGE_STD_4, CARTRIDGE_TextDesc[CARTRIDGE_STD_4]),
-		UI_MENU_ACTION(CARTRIDGE_RIGHT_4, CARTRIDGE_TextDesc[CARTRIDGE_RIGHT_4]),
+	static UI_tMenuItem menu_array[] = {
+		UI_MENU_ACTION(CARTRIDGE_STD_8, CARTRIDGE_STD_8_DESC),
+		UI_MENU_ACTION(CARTRIDGE_STD_16, CARTRIDGE_STD_16_DESC),
+		UI_MENU_ACTION(CARTRIDGE_OSS_034M_16, CARTRIDGE_OSS_034M_16_DESC),
+		UI_MENU_ACTION(CARTRIDGE_5200_32, CARTRIDGE_5200_32_DESC),
+		UI_MENU_ACTION(CARTRIDGE_DB_32, CARTRIDGE_DB_32_DESC),
+		UI_MENU_ACTION(CARTRIDGE_5200_EE_16, CARTRIDGE_5200_EE_16_DESC),
+		UI_MENU_ACTION(CARTRIDGE_5200_40, CARTRIDGE_5200_40_DESC),
+		UI_MENU_ACTION(CARTRIDGE_WILL_64, CARTRIDGE_WILL_64_DESC),
+		UI_MENU_ACTION(CARTRIDGE_EXP_64, CARTRIDGE_EXP_64_DESC),
+		UI_MENU_ACTION(CARTRIDGE_DIAMOND_64, CARTRIDGE_DIAMOND_64_DESC),
+		UI_MENU_ACTION(CARTRIDGE_SDX_64, CARTRIDGE_SDX_64_DESC),
+		UI_MENU_ACTION(CARTRIDGE_XEGS_32, CARTRIDGE_XEGS_32_DESC),
+		UI_MENU_ACTION(CARTRIDGE_XEGS_07_64, CARTRIDGE_XEGS_07_64_DESC),
+		UI_MENU_ACTION(CARTRIDGE_XEGS_128, CARTRIDGE_XEGS_128_DESC),
+		UI_MENU_ACTION(CARTRIDGE_OSS_M091_16, CARTRIDGE_OSS_M091_16_DESC),
+		UI_MENU_ACTION(CARTRIDGE_5200_NS_16, CARTRIDGE_5200_NS_16_DESC),
+		UI_MENU_ACTION(CARTRIDGE_ATRAX_128, CARTRIDGE_ATRAX_128_DESC),
+		UI_MENU_ACTION(CARTRIDGE_BBSB_40, CARTRIDGE_BBSB_40_DESC),
+		UI_MENU_ACTION(CARTRIDGE_5200_8, CARTRIDGE_5200_8_DESC),
+		UI_MENU_ACTION(CARTRIDGE_5200_4, CARTRIDGE_5200_4_DESC),
+		UI_MENU_ACTION(CARTRIDGE_RIGHT_8, CARTRIDGE_RIGHT_8_DESC),
+		UI_MENU_ACTION(CARTRIDGE_WILL_32, CARTRIDGE_WILL_32_DESC),
+		UI_MENU_ACTION(CARTRIDGE_XEGS_256, CARTRIDGE_XEGS_256_DESC),
+		UI_MENU_ACTION(CARTRIDGE_XEGS_512, CARTRIDGE_XEGS_512_DESC),
+		UI_MENU_ACTION(CARTRIDGE_XEGS_1024, CARTRIDGE_XEGS_1024_DESC),
+		UI_MENU_ACTION(CARTRIDGE_MEGA_16, CARTRIDGE_MEGA_16_DESC),
+		UI_MENU_ACTION(CARTRIDGE_MEGA_32, CARTRIDGE_MEGA_32_DESC),
+		UI_MENU_ACTION(CARTRIDGE_MEGA_64, CARTRIDGE_MEGA_64_DESC),
+		UI_MENU_ACTION(CARTRIDGE_MEGA_128, CARTRIDGE_MEGA_128_DESC),
+		UI_MENU_ACTION(CARTRIDGE_MEGA_256, CARTRIDGE_MEGA_256_DESC),
+		UI_MENU_ACTION(CARTRIDGE_MEGA_512, CARTRIDGE_MEGA_512_DESC),
+		UI_MENU_ACTION(CARTRIDGE_MEGA_1024, CARTRIDGE_MEGA_1024_DESC),
+		UI_MENU_ACTION(CARTRIDGE_SWXEGS_32, CARTRIDGE_SWXEGS_32_DESC),
+		UI_MENU_ACTION(CARTRIDGE_SWXEGS_64, CARTRIDGE_SWXEGS_64_DESC),
+		UI_MENU_ACTION(CARTRIDGE_SWXEGS_128, CARTRIDGE_SWXEGS_128_DESC),
+		UI_MENU_ACTION(CARTRIDGE_SWXEGS_256, CARTRIDGE_SWXEGS_256_DESC),
+		UI_MENU_ACTION(CARTRIDGE_SWXEGS_512, CARTRIDGE_SWXEGS_512_DESC),
+		UI_MENU_ACTION(CARTRIDGE_SWXEGS_1024, CARTRIDGE_SWXEGS_1024_DESC),
+		UI_MENU_ACTION(CARTRIDGE_PHOENIX_8, CARTRIDGE_PHOENIX_8_DESC),
+		UI_MENU_ACTION(CARTRIDGE_BLIZZARD_16, CARTRIDGE_BLIZZARD_16_DESC),
+		UI_MENU_ACTION(CARTRIDGE_ATMAX_128, CARTRIDGE_ATMAX_128_DESC),
+		UI_MENU_ACTION(CARTRIDGE_ATMAX_1024, CARTRIDGE_ATMAX_1024_DESC),
+		UI_MENU_ACTION(CARTRIDGE_SDX_128, CARTRIDGE_SDX_128_DESC),
+		UI_MENU_ACTION(CARTRIDGE_OSS_8, CARTRIDGE_OSS_8_DESC),
+		UI_MENU_ACTION(CARTRIDGE_OSS_043M_16, CARTRIDGE_OSS_043M_16_DESC),
+		UI_MENU_ACTION(CARTRIDGE_BLIZZARD_4, CARTRIDGE_BLIZZARD_4_DESC),
+		UI_MENU_ACTION(CARTRIDGE_AST_32, CARTRIDGE_AST_32_DESC),
+		UI_MENU_ACTION(CARTRIDGE_ATRAX_SDX_64, CARTRIDGE_ATRAX_SDX_64_DESC),
+		UI_MENU_ACTION(CARTRIDGE_ATRAX_SDX_128, CARTRIDGE_ATRAX_SDX_128_DESC),
+		UI_MENU_ACTION(CARTRIDGE_TURBOSOFT_64, CARTRIDGE_TURBOSOFT_64_DESC),
+		UI_MENU_ACTION(CARTRIDGE_TURBOSOFT_128, CARTRIDGE_TURBOSOFT_128_DESC),
+		UI_MENU_ACTION(CARTRIDGE_ULTRACART_32, CARTRIDGE_ULTRACART_32_DESC),
+		UI_MENU_ACTION(CARTRIDGE_LOW_BANK_8, CARTRIDGE_LOW_BANK_8_DESC),
+		UI_MENU_ACTION(CARTRIDGE_SIC_128, CARTRIDGE_SIC_128_DESC),
+		UI_MENU_ACTION(CARTRIDGE_SIC_256, CARTRIDGE_SIC_256_DESC),
+		UI_MENU_ACTION(CARTRIDGE_SIC_512, CARTRIDGE_SIC_512_DESC),
+		UI_MENU_ACTION(CARTRIDGE_STD_2, CARTRIDGE_STD_2_DESC),
+		UI_MENU_ACTION(CARTRIDGE_STD_4, CARTRIDGE_STD_4_DESC),
+		UI_MENU_ACTION(CARTRIDGE_RIGHT_4, CARTRIDGE_RIGHT_4_DESC),
+		UI_MENU_ACTION(CARTRIDGE_BLIZZARD_32, CARTRIDGE_BLIZZARD_32_DESC),
+		UI_MENU_ACTION(CARTRIDGE_MEGAMAX_2048, CARTRIDGE_MEGAMAX_2048_DESC),
+		UI_MENU_ACTION(CARTRIDGE_THECART_128M, CARTRIDGE_THECART_128M_DESC),
+		UI_MENU_ACTION(CARTRIDGE_MEGA_4096, CARTRIDGE_MEGA_4096_DESC),
+		UI_MENU_ACTION(CARTRIDGE_MEGA_2048, CARTRIDGE_MEGA_2048_DESC),
+		UI_MENU_ACTION(CARTRIDGE_THECART_32M, CARTRIDGE_THECART_32M_DESC),
+		UI_MENU_ACTION(CARTRIDGE_THECART_64M, CARTRIDGE_THECART_64M_DESC),
+		UI_MENU_ACTION(CARTRIDGE_XEGS_8F_64, CARTRIDGE_XEGS_8F_64_DESC),
 		UI_MENU_END
 	};
 
@@ -2546,6 +2563,25 @@ static void ColourSliderLabel(char *label, int value, void *user_data)
 	Colours_Update();
 }
 
+#ifdef RPI
+static int ZoomSettingToSlider()
+{
+	/* 0.8 <= op_zoom <= 1.3 */
+	return (int) Util_round((op_zoom - 0.8f) * 50.0 / (1.3f - 0.8f));
+}
+static double SliderToZoomSetting(int value)
+{
+	/* 0 <= value <= 50 */
+	return (double) value * (1.3f - 0.8f) / 50.0 + 0.8f;
+}
+static void ZoomSliderLabel(char *label, int value, void *user_data)
+{
+	double setting = SliderToZoomSetting(value);
+	sprintf(label, "% .2f", setting);
+	op_zoom = setting;
+}
+#endif /* RPI */
+
 #if NTSC_FILTER
 /* Submenu with controls for NTSC filter. */
 static void NTSCFilterSettings(void)
@@ -2649,13 +2685,19 @@ static void SavePalette(void)
 
 static void DisplaySettings(void)
 {
-	static const UI_tMenuItem artif_quality_menu_array[] = {
-		UI_MENU_ACTION(0, "off"),
-		UI_MENU_ACTION(1, "original"),
-		UI_MENU_ACTION(2, "new"),
+	static UI_tMenuItem artif_menu_array[] = {
+		UI_MENU_ACTION(ARTIFACT_NONE, "off"),
+		UI_MENU_ACTION(ARTIFACT_NTSC_OLD, "old NTSC artifacts"),
+		UI_MENU_ACTION(ARTIFACT_NTSC_NEW, "new NTSC artifacts"),
 #if NTSC_FILTER
-		UI_MENU_ACTION(3, "NTSC filter"),
+		UI_MENU_ACTION(ARTIFACT_NTSC_FULL, "full NTSC filter"),
 #endif
+#ifndef NO_SIMPLE_PAL_BLENDING
+		UI_MENU_ACTION(ARTIFACT_PAL_SIMPLE, "simple PAL blending"),
+#endif
+#if PAL_BLENDING
+		UI_MENU_ACTION(ARTIFACT_PAL_BLEND, "accurate PAL blending"),
+#endif /* PAL_BLENDING */
 		UI_MENU_END
 	};
 	static const UI_tMenuItem artif_mode_menu_array[] = {
@@ -2677,11 +2719,18 @@ static void DisplaySettings(void)
 #endif
 	
 	static char refresh_status[16];
+#ifdef RPI
+	static char op_zoom_string[16];
+#endif /* RPI */
 	static UI_tMenuItem menu_array[] = {
 #if SUPPORTS_CHANGE_VIDEOMODE
 		UI_MENU_SUBMENU(24, "Video mode settings"),
 #endif /* SUPPORTS_CHANGE_VIDEOMODE */
-		UI_MENU_SUBMENU_SUFFIX(0, "NTSC artifacting quality:", NULL),
+#ifdef RPI
+		UI_MENU_CHECK(30, "Filtering:"),
+		{ UI_ITEM_ACTION, 31, NULL, "Zoom: ", op_zoom_string },
+#endif /* RPI */
+		UI_MENU_SUBMENU_SUFFIX(0, "Video artifacts:", NULL),
 		UI_MENU_SUBMENU_SUFFIX(11, "NTSC artifacting mode:", NULL),
 #if SUPPORTS_CHANGE_VIDEOMODE && (defined(XEP80_EMULATION) || defined(PBI_PROTO80) || defined(AF80))
 		UI_MENU_CHECK(25, "Show output of 80 column device:"),
@@ -2724,15 +2773,13 @@ static void DisplaySettings(void)
 
 #if SUPPORTS_CHANGE_VIDEOMODE
 	int option = 24;
-#else
+#elif RPI
+	int option = 30;
+#else /* RPI */
 	int option = 0;
-#endif
+#endif /* RPI */
 	int option2;
 	int seltype;
-
-	/* Current artifacting quality, computed from
-	   PLATFORM_artifacting and ANTIC_artif_new */
-	int artif_quality;
 
 #if SUPPORTS_PLATFORM_PALETTEUPDATE
 	Colours_preset_t colours_preset;
@@ -2741,24 +2788,12 @@ static void DisplaySettings(void)
 #endif
 
 	for (;;) {
-#if NTSC_FILTER
-		/* Computing current artifacting quality... */
-		if (VIDEOMODE_ntsc_filter) {
-			/* NTSC filter is on */
-			FindMenuItem(menu_array, 0)->suffix = artif_quality_menu_array[3].item;
-			FindMenuItem(menu_array, 11)->suffix = "N/A";
-			artif_quality = 3;
-		} else
-#endif /* NTSC_FILTER */
 		if (ANTIC_artif_mode == 0) { /* artifacting is off */
-			FindMenuItem(menu_array, 0)->suffix = artif_quality_menu_array[0].item;
 			FindMenuItem(menu_array, 11)->suffix = "N/A";
-			artif_quality = 0;
 		} else { /* ANTIC artifacting is on */
-			FindMenuItem(menu_array, 0)->suffix = artif_quality_menu_array[1 + ANTIC_artif_new].item;
 			FindMenuItem(menu_array, 11)->suffix = artif_mode_menu_array[ANTIC_artif_mode - 1].item;
-			artif_quality = 1 + ANTIC_artif_new;
 		}
+		FindMenuItem(menu_array, 0)->suffix = artif_menu_array[ARTIFACT_mode].item;
 
 #if SUPPORTS_PLATFORM_PALETTEUPDATE
 		colours_preset = Colours_GetPreset();
@@ -2782,6 +2817,10 @@ static void DisplaySettings(void)
 		SetItemChecked(menu_array, 25, VIDEOMODE_80_column);
 #endif
 		snprintf(refresh_status, sizeof(refresh_status), "1:%-2d", Atari800_refresh_rate);
+#ifdef RPI
+		snprintf(op_zoom_string, sizeof(op_zoom_string), "%.2f", op_zoom);
+		SetItemChecked(menu_array, 30, op_filtering);
+#endif /* RPI */
 		SetItemChecked(menu_array, 2, Atari800_collisions_in_skipped_frames);
 		SetItemChecked(menu_array, 3, Screen_show_atari_speed);
 		SetItemChecked(menu_array, 4, Screen_show_disk_led);
@@ -2803,35 +2842,29 @@ static void DisplaySettings(void)
 			break;
 #endif
 		case 0:
-			option2 = UI_driver->fSelect(NULL, UI_SELECT_POPUP, artif_quality, artif_quality_menu_array, NULL);
+			artif_menu_array[ARTIFACT_NTSC_OLD].flags =
+				Atari800_tv_mode == Atari800_TV_NTSC ? UI_ITEM_ACTION : UI_ITEM_HIDDEN;
+			artif_menu_array[ARTIFACT_NTSC_NEW].flags =
+				Atari800_tv_mode == Atari800_TV_NTSC ? UI_ITEM_ACTION : UI_ITEM_HIDDEN;
+#if NTSC_FILTER
+			artif_menu_array[ARTIFACT_NTSC_FULL].flags =
+				Atari800_tv_mode == Atari800_TV_NTSC ? UI_ITEM_ACTION : UI_ITEM_HIDDEN;
+#endif /* NTSC_FILTER */
+#ifndef NO_SIMPLE_PAL_BLENDING
+			artif_menu_array[ARTIFACT_PAL_SIMPLE].flags =
+				Atari800_tv_mode == Atari800_TV_PAL ? UI_ITEM_ACTION : UI_ITEM_HIDDEN;
+#endif /* NO_SIMPLE_PAL_BLENDING */
+#ifdef PAL_BLENDING
+			artif_menu_array[ARTIFACT_PAL_BLEND].flags =
+				Atari800_tv_mode == Atari800_TV_PAL ? UI_ITEM_ACTION : UI_ITEM_HIDDEN;
+#endif /* PAL_BLENDING */
+			option2 = UI_driver->fSelect(NULL, UI_SELECT_POPUP, ARTIFACT_mode, artif_menu_array, NULL);
 			if (option2 >= 0)
-			{
-#if NTSC_FILTER && SUPPORTS_CHANGE_VIDEOMODE
-				/* If switched between non-filter and NTSC filter,
-				   VIDEOMODE_ntsc_filter must be updated. */
-				if (option2 >= 3 && artif_quality < 3)
-					VIDEOMODE_SetNtscFilter(TRUE);
-				else if (option2 < 3 && artif_quality >= 3)
-					VIDEOMODE_SetNtscFilter(FALSE);
-#endif /* NTSC_FILTER && SUPPORTS_CHANGE_VIDEOMODE */
-				/* ANTIC artifacting settings cannot be turned on
-				   when artifacting is off or NTSC filter. */
-				if (option2 == 0 || option2 >= 3) {
-					ANTIC_artif_new = ANTIC_artif_mode = 0;
-				} else {
-					/* Do not reset artifacting mode when switched between original and new. */
-					if (artif_quality >= 3 || artif_quality == 0)
-						/* switched from off/ntsc filter to ANTIC artifacting */
-						ANTIC_artif_mode = 1;
-
-					ANTIC_artif_new = option2 - 1;
-				}
-				ANTIC_UpdateArtifacting();
-			}
+				ARTIFACT_Set(option2);
 			break;
 		case 11:
 			/* The artifacting mode option is only active for ANTIC artifacting. */
-			if (artif_quality > 0 && artif_quality < 3)
+			if (ANTIC_artif_mode != 0)
 			{
 				option2 = UI_driver->fSelect(NULL, UI_SELECT_POPUP, ANTIC_artif_mode - 1, artif_mode_menu_array, NULL);
 				if (option2 >= 0) {
@@ -2857,6 +2890,21 @@ static void DisplaySettings(void)
 				UI_driver->fMessage("No 80 column hardware available now.", 1);
 			break;
 #endif /* SUPPORTS_CHANGE_VIDEOMODE && (defined(XEP80_EMULATION) || defined(PBI_PROTO80) || defined(AF80)) */
+#ifdef RPI
+		case 30:
+			op_filtering = !op_filtering;
+			break;
+		case 31:
+			{
+				int value = UI_driver->fSelectSlider("Adjust zoom",
+								     ZoomSettingToSlider(),
+								     50, &ZoomSliderLabel, NULL);
+				if (value != -1) {
+					op_zoom = SliderToZoomSetting(value);
+				}
+			}
+			break;
+#endif /* RPI */
 		case 1:
 			Atari800_refresh_rate = UI_driver->fSelectInt(Atari800_refresh_rate, 1, 99);
 			break;
@@ -2943,7 +2991,7 @@ static void DisplaySettings(void)
 			break;
 #if NTSC_FILTER
 		case 19:
-			if (VIDEOMODE_ntsc_filter) {
+			if (ARTIFACT_mode == ARTIFACT_NTSC_FULL) {
 				NTSCFilterSettings();
 				/* While in NTSC Filter menu, the "Filter preset" option also changes the "standard" colour
 				   controls (saturation etc.) - so we need to call UpdateColourControls to update the menu. */
@@ -2956,7 +3004,7 @@ static void DisplaySettings(void)
 		case 20:
 			Colours_RestoreDefaults();
 #if NTSC_FILTER
-			if (VIDEOMODE_ntsc_filter)
+			if (ARTIFACT_mode == ARTIFACT_NTSC_FULL)
 				FILTER_NTSC_RestoreDefaults();
 #endif
 			UpdateColourControls(menu_array);
@@ -3621,96 +3669,220 @@ static void ControllerConfiguration(void)
 
 static int SoundSettings(void)
 {
+#ifdef SOUND_THIN_API
+	Sound_setup_t setup = Sound_desired;
+	static char freq_string[9]; /* "nnnnn Hz\0" */
+	static char frag_frames_string[13]; /* "auto (nnnnn)\0" */
+#ifdef SYNCHRONIZED_SOUND
+	static char latency_string[8]; /* nnnn ms\0" */
+#endif /* SYNCHRONIZED_SOUND */
+
+	static const unsigned int freq_values[] = {
+		8192,
+		11025,
+		22050,
+		44100,
+		48000
+	};
+	static const UI_tMenuItem freq_menu_array[] = {
+		UI_MENU_ACTION(0, "8192 Hz"),
+		UI_MENU_ACTION(1, "11025 Hz"),
+		UI_MENU_ACTION(2, "22050 Hz"),
+		UI_MENU_ACTION(3, "44100 Hz"),
+		UI_MENU_ACTION(4, "48000 Hz"),
+		UI_MENU_ACTION(5, "custom"),
+		UI_MENU_END
+	};
+
+	static const UI_tMenuItem frag_frames_menu_array[] = {
+		UI_MENU_ACTION(0, "automatic"),
+		UI_MENU_ACTION(128, "128"),
+		UI_MENU_ACTION(256, "256"),
+		UI_MENU_ACTION(512, "512"),
+		UI_MENU_ACTION(1024, "1024"),
+		UI_MENU_ACTION(2048, "2048"),
+		UI_MENU_ACTION(4096, "4096"),
+		UI_MENU_ACTION(8192, "8192"),
+		UI_MENU_ACTION(16384, "16384"),
+		UI_MENU_END
+	};
+#endif /* SOUND_THIN_API */
+
 	static UI_tMenuItem menu_array[] = {
-		/* XXX: don't allow on smartphones? */
-#ifndef SYNCHRONIZED_SOUND
-		UI_MENU_CHECK(0, "High Fidelity POKEY:"),
+#ifdef SOUND_THIN_API
+		UI_MENU_CHECK(0, "Enable sound:"),
+		UI_MENU_SUBMENU_SUFFIX(1, "Frequency:", freq_string),
+		UI_MENU_ACTION(2, "Bit depth:"),
+		UI_MENU_SUBMENU_SUFFIX(3, "Fragment size:", frag_frames_string),
+#ifdef SYNCHRONIZED_SOUND
+		UI_MENU_SUBMENU_SUFFIX(4, "Latency:", latency_string),
+#endif /* SYNCHRONIZED_SOUND */
+#endif /* SOUND_THIN_API */
+#ifdef DREAMCAST
+		UI_MENU_CHECK(0, "Enable sound:"),
 #endif
 #ifdef STEREO_SOUND
-		UI_MENU_CHECK(1, "Dual POKEY (Stereo):"),
+		UI_MENU_CHECK(5, "Dual POKEY (Stereo):"),
 #endif
+		UI_MENU_CHECK(6, "High Fidelity POKEY:"),
 #ifdef CONSOLE_SOUND
-		UI_MENU_CHECK(2, "Speaker (Key Click):"),
+		UI_MENU_CHECK(7, "Speaker (Key Click):"),
 #endif
 #ifdef SERIO_SOUND
-		UI_MENU_CHECK(3, "Serial IO Sound:"),
+		UI_MENU_CHECK(8, "Serial IO Sound:"),
 #endif
-#ifndef SYNCHRONIZED_SOUND
-		UI_MENU_ACTION(4, "Enable higher frequencies:"),
-#endif
-#ifdef DREAMCAST
-		UI_MENU_CHECK(5, "Enable sound:"),
-#endif
+		UI_MENU_ACTION(9, "Enable higher frequencies:"),
 		UI_MENU_END
 	};
 
 	int option = 0;
 
 	for (;;) {
-#ifndef SYNCHRONIZED_SOUND
-		SetItemChecked(menu_array, 0, POKEYSND_enable_new_pokey);
+#ifdef SOUND_THIN_API
+		SetItemChecked(menu_array, 0, Sound_enabled);
+		snprintf(freq_string, sizeof(freq_string), "%i Hz", setup.freq);
+		menu_array[2].suffix = setup.sample_size == 2 ? "16 bit" : "8 bit";
+		if (setup.frag_frames == 0) {
+			if (Sound_enabled)
+				snprintf(frag_frames_string, sizeof(frag_frames_string), "auto (%u)", Sound_out.frag_frames);
+			else
+				strncpy(frag_frames_string, "auto", sizeof(frag_frames_string));
+		}
+		else
+			snprintf(frag_frames_string, sizeof(frag_frames_string), "%u", setup.frag_frames);
+#ifdef SYNCHRONIZED_SOUND
+		snprintf(latency_string, sizeof(latency_string), "%i ms", Sound_latency);
+#endif /* SYNCHRONIZED_SOUND */
+#endif /* SOUND_THIN_API */
+#ifdef DREAMCAST
+		SetItemChecked(menu_array, 0, glob_snd_ena);
 #endif
 #ifdef STEREO_SOUND
-		SetItemChecked(menu_array, 1, POKEYSND_stereo_enabled);
-#endif
+#ifdef SOUND_THIN_API
+		SetItemChecked(menu_array, 5, setup.channels == 2);
+#else /* !defined(SOUND_THIN_API) */
+		SetItemChecked(menu_array, 5, POKEYSND_stereo_enabled);
+#endif /* SOUND_THIN_API */
+#endif /* STEREO_SOUND */
+		SetItemChecked(menu_array, 6, POKEYSND_enable_new_pokey);
 #ifdef CONSOLE_SOUND
-		SetItemChecked(menu_array, 2, POKEYSND_console_sound_enabled);
+		SetItemChecked(menu_array, 7, POKEYSND_console_sound_enabled);
 #endif
 #ifdef SERIO_SOUND
-		SetItemChecked(menu_array, 3, POKEYSND_serio_sound_enabled);
+		SetItemChecked(menu_array, 8, POKEYSND_serio_sound_enabled);
 #endif
-#ifndef SYNCHRONIZED_SOUND
-		FindMenuItem(menu_array, 4)->suffix = POKEYSND_enable_new_pokey ? "N/A" : POKEYSND_bienias_fix ? "Yes" : "No ";
-#endif
-#ifdef DREAMCAST
-		SetItemChecked(menu_array, 5, glob_snd_ena);
-#endif
+		FindMenuItem(menu_array, 9)->suffix = POKEYSND_enable_new_pokey ? "N/A" : POKEYSND_bienias_fix ? "Yes" : "No ";
 
-#if 0
-		option = UI_driver->fSelect(NULL, UI_SELECT_POPUP, option, menu_array, NULL);
-#else
 		option = UI_driver->fSelect("Sound Settings", 0, option, menu_array, NULL);
-#endif
-
 		switch (option) {
-#ifndef SYNCHRONIZED_SOUND
+#ifdef SOUND_THIN_API
 		case 0:
+			if (Sound_enabled)
+				Sound_Exit();
+			else {
+				Sound_desired = setup;
+				if (!Sound_Setup())
+					UI_driver->fMessage("Error: can't open sound device", 1);
+				else
+					setup = Sound_desired;
+			}
+			break;
+		case 1:
+			{
+				int option2;
+				int current;
+				for (current = 0; freq_menu_array[current].retval < 5; ++current) {
+					/* Find the currently-chosen frequency. */
+					if (freq_values[freq_menu_array[current].retval] == setup.freq)
+						break;
+				}
+				option2 = UI_driver->fSelect(NULL, UI_SELECT_POPUP, current, freq_menu_array, NULL);
+				if (option2 == 5) {
+					snprintf(freq_string, sizeof(freq_string), "%u", setup.freq); /* Remove " Hz" suffix */
+					if (UI_driver->fEditString("Enter sound frequency", freq_string, sizeof(freq_string)-3))
+						setup.freq = atoi(freq_string);
+				}
+				else if (option2 >= 0)
+					setup.freq = freq_values[option2];
+				}
+			break;
+		case 2:
+			setup.sample_size = 3 - setup.sample_size; /* Toggle 1<->2 */
+			break;
+		case 3:
+			{
+				int option2 = UI_driver->fSelect(NULL, UI_SELECT_POPUP, setup.frag_frames, frag_frames_menu_array, NULL);
+				if (option2 >= 0)
+					setup.frag_frames = option2;
+			}
+			break;
+#ifdef SYNCHRONIZED_SOUND
+		case 4:
+			snprintf(latency_string, sizeof(latency_string), "%u", Sound_latency); /* Remove " ms" suffix */
+			if (UI_driver->fEditString("Enter sound latency", latency_string, sizeof(latency_string)-3))
+				Sound_SetLatency(atoi(latency_string));
+			break;
+#endif /* SYNCHRONIZED_SOUND */
+#endif /* SOUND_THIN_API */
+#ifdef DREAMCAST
+		case 0:
+			glob_snd_ena = !glob_snd_ena;
+			break;
+#endif
+#ifdef STEREO_SOUND
+		case 5:
+#ifdef SOUND_THIN_API
+			setup.channels = 3 - setup.channels; /* Toggle 1<->2 */
+#else /* !defined(SOUND_THIN_API) */
+			POKEYSND_stereo_enabled = !POKEYSND_stereo_enabled;
+#ifdef SUPPORTS_SOUND_REINIT
+			Sound_Reinit();
+#endif
+#endif /* SOUND_THIN_API */
+			break;
+#endif
+		case 6:
 			POKEYSND_enable_new_pokey = !POKEYSND_enable_new_pokey;
 			POKEYSND_DoInit();
 			/* According to the PokeySnd doc the POKEY switch can occur on
 			   a cold-restart only */
 			UI_driver->fMessage("Will reboot to apply the change", 1);
 			return TRUE; /* reboot required */
-#endif
-#ifdef STEREO_SOUND
-		case 1:
-			POKEYSND_stereo_enabled = !POKEYSND_stereo_enabled;
-#ifdef SUPPORTS_SOUND_REINIT
-			Sound_Reinit();
-#endif
-			break;
-#endif
 #ifdef CONSOLE_SOUND
-		case 2:
+		case 7:
 			POKEYSND_console_sound_enabled = !POKEYSND_console_sound_enabled;
 			break;
 #endif
 #ifdef SERIO_SOUND
-		case 3:
+		case 8:
 			POKEYSND_serio_sound_enabled = !POKEYSND_serio_sound_enabled;
 			break;
 #endif
-#ifndef SYNCHRONIZED_SOUND
-		case 4:
-			if (! POKEYSND_enable_new_pokey) POKEYSND_bienias_fix = !POKEYSND_bienias_fix;
+		case 9:
+			if (!POKEYSND_enable_new_pokey)
+				POKEYSND_bienias_fix = !POKEYSND_bienias_fix;
 			break;
-#endif
-#ifdef DREAMCAST
-		case 5:
-			glob_snd_ena = !glob_snd_ena;
-			break;
-#endif
 		default:
+#ifdef SOUND_THIN_API
+			if (!Sound_enabled)
+				/* Only store setup from menu in Sound_desired. */
+				Sound_desired = setup;
+			else if (setup.freq        != Sound_desired.freq ||
+			         setup.sample_size != Sound_desired.sample_size ||
+#ifdef STEREO_SOUND
+			         setup.channels    != Sound_desired.channels ||
+#endif
+			         setup.frag_frames != Sound_desired.frag_frames) {
+				/* Sound output reinitialisation needed. */
+				Sound_desired = setup;
+				if (!Sound_Setup()) {
+					UI_driver->fMessage("Error: can't open sound device", 1);
+					/* Don't leave menu on failure. */
+					break;
+				}
+				setup = Sound_desired;
+			}
+#endif /* SOUND_THIN_API */
 			return FALSE;
 		}
 	}

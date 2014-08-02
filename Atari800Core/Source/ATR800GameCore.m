@@ -45,6 +45,7 @@
 #endif
 #include "screen.h"
 #include "colours.h"
+#include "colours_ntsc.h"
 #include "cfg.h"
 #include "devices.h"
 #include "input.h"
@@ -61,6 +62,8 @@
 #include "ui.h"
 #include "akey.h"
 #include "sysrom.h"
+#include "statesav.h"
+#include "pokeysnd.h"
 
 typedef struct {
 	int up;
@@ -77,6 +80,7 @@ typedef struct {
 @interface ATR800GameCore () <OE5200SystemResponderClient>
 {
 	unsigned char *screenBuffer;
+    unsigned char *soundBuffer;
     double sampleRate;
 	ATR5200ControllerState controllerStates[4];
     NSString *md5Hash;
@@ -89,7 +93,7 @@ int16_t convertSample(uint8_t);
 
 static ATR800GameCore *currentCore;
 
-void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len);
+//void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len);
 
 static int num_cont = 4;
 
@@ -100,6 +104,22 @@ int PLATFORM_Initialise(int *argc, char *argv[])
 #ifdef SOUND
 	Sound_Initialise(argc, argv);
 #endif
+    
+    if (Sound_enabled) {
+		/* Up to this point the Sound_enabled flag indicated that we _want_ to
+         enable sound. From now on, the flag will indicate whether audio
+         output is enabled and working. So, since the sound output was not
+         yet initiated, we set the flag accordingly. */
+		Sound_enabled = FALSE;
+		/* Don't worry, Sound_Setup() will set Sound_enabled back to TRUE if
+         it opens audio output successfully. But Sound_Setup() relies on the
+         flag being set if and only if audio output is active. */
+		if (Sound_Setup())
+        /* Start sound if opening audio output was successful. */
+            Sound_Continue();
+	}
+    
+    POKEYSND_stereo_enabled = TRUE;
 	
 	return TRUE;
 }
@@ -246,26 +266,55 @@ int Atari_POT(int num)
 	}
 }
 
-int16_t convertSample(uint8_t sample)
+int PLATFORM_SoundSetup(Sound_setup_t *setup)
 {
-	float floatSample = (float)sample / 255;
-	return (int16_t)(floatSample * 65535 - 32768);
+    int buffer_samples;
+    
+    if (setup->frag_frames == 0) {
+		/* Set frag_frames automatically. */
+		unsigned int val = setup->frag_frames = setup->freq / 50;
+		unsigned int pow_val = 1;
+		while (val >>= 1)
+			pow_val <<= 1;
+		if (pow_val < setup->frag_frames)
+			pow_val <<= 1;
+		setup->frag_frames = pow_val;
+	}
+    
+    setup->sample_size = 2;
+    
+    buffer_samples = setup->frag_frames * setup->channels;
+    setup->frag_frames = buffer_samples / setup->channels;
+    
+    return TRUE;
 }
 
-void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
-	int samples = len / sizeof(uint8_t);
-	NSUInteger newLength = len * sizeof(int16_t);
-	int16_t *newBuffer = malloc(len * sizeof(int16_t));
-	int16_t *dest = newBuffer;
-	uint8_t *source = buffer;
-	for(int i = 0; i < samples; i++) {
-		*dest = convertSample(*source);
-		dest++;
-		source++;
-	}
-    [[currentCore ringBufferAtIndex:0] write:newBuffer maxLength:newLength];
-	free(newBuffer);
-}
+void PLATFORM_SoundExit(void){}
+
+void PLATFORM_SoundPause(void){}
+
+void PLATFORM_SoundContinue(void){}
+
+//int16_t convertSample(uint8_t sample)
+//{
+//	float floatSample = (float)sample / 255;
+//	return (int16_t)(floatSample * 65535 - 32768);
+//}
+//
+//void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
+//	int samples = len / sizeof(uint8_t);
+//	NSUInteger newLength = len * sizeof(int16_t);
+//	int16_t *newBuffer = malloc(len * sizeof(int16_t));
+//	int16_t *dest = newBuffer;
+//	uint8_t *source = buffer;
+//	for(int i = 0; i < samples; i++) {
+//		*dest = convertSample(*source);
+//		dest++;
+//		source++;
+//	}
+//    [[currentCore ringBufferAtIndex:0] write:newBuffer maxLength:newLength];
+//	free(newBuffer);
+//}
 
 @implementation ATR800GameCore
 
@@ -274,6 +323,7 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
     if((self = [super init]))
     {
         screenBuffer = malloc(Screen_WIDTH * Screen_HEIGHT * 4);
+        soundBuffer = malloc(2048); // 4096 if stereo?
     }
     
     currentCore = self;
@@ -285,6 +335,7 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
 {
 	Atari800_Exit(false);
 	free(screenBuffer);
+    free(soundBuffer);
 	[super dealloc];
 }
 
@@ -293,12 +344,26 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
 //	NSLog(@"Executing");
 	// Note: this triggers UI code and also calls the input functions above
 	Atari800_Frame();
+    
+    int size = 44100 / (Atari800_tv_mode == Atari800_TV_NTSC ? 60 : 50) * 2;
+    
+    Sound_Callback(soundBuffer, size);
+    
+    //NSLog(@"Sound_desired.channels %d frag_frames %d freq %d sample_size %d", Sound_desired.channels, Sound_desired.frag_frames, Sound_desired.freq, Sound_desired.sample_size);
+    //NSLog(@"Sound_out.channels %d frag_frames %d freq %d sample_size %d", Sound_out.channels, Sound_out.frag_frames, Sound_out.freq, Sound_out.sample_size);
+    
+    [[currentCore ringBufferAtIndex:0] write:soundBuffer maxLength:size];
+    
 	[self renderToBuffer];
 }
 
 - (void)setupEmulation
 {
-//	if (!Atari800_Initialise(0, NULL))
+//	int ac = 1;
+//	char av = '\0';
+//	char *avp = &av;
+//    
+//	if (!Atari800_Initialise(&ac, &avp))
 //		NSLog(@"Failed to initialize Atari800 emulation");
 }
 
@@ -331,11 +396,14 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
     DLog(@"Loadeding File: ", path);
     
     char biosFileName[2048];
-    NSString *appSupportPath = [NSString pathWithComponents:@[
-                                [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) lastObject],
-                                @"OpenEmu", @"BIOS"]];
+    NSString *biosPath = [self biosDirectoryPath];
     
-    strcpy(biosFileName, [[appSupportPath stringByAppendingPathComponent:@"5200.rom"] UTF8String]);
+    strcpy(biosFileName, [[biosPath stringByAppendingPathComponent:@"5200.rom"] UTF8String]);
+    
+    // set the default palette
+    NSString *palettePath = [[[NSBundle bundleForClass:[self class]] resourcePath] stringByAppendingPathComponent:@"Default.act"];
+    strcpy(COLOURS_NTSC_external.filename, [palettePath UTF8String]);
+    COLOURS_NTSC_external.loaded = TRUE;
 	
     Atari800_tv_mode = Atari800_TV_NTSC;
     
@@ -546,6 +614,8 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
 		}
 #endif /* __PLUS */
 	}
+    
+    //POKEYSND_Init(POKEYSND_FREQ_17_EXACT, 44100, 1, POKEYSND_BIT16);
 
     return YES;
 }
@@ -587,7 +657,7 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
 
 - (double)audioSampleRate
 {
-    return 22050;
+    return 44100;
 }
 
 - (NSTimeInterval)frameInterval
@@ -597,18 +667,18 @@ void ATR800WriteSoundBuffer(uint8_t *buffer, unsigned int len) {
 
 - (NSUInteger)channelCount
 {
-    return 2;
+    return 1;
 }
 
 
 - (BOOL)saveStateToFileAtPath:(NSString *)fileName
 {
-    return NO;
+    return StateSav_SaveAtariState([fileName UTF8String], "wb", TRUE) ? YES : NO;
 }
 
 - (BOOL)loadStateFromFileAtPath:(NSString *)fileName
 {
-    return NO;
+    return StateSav_ReadAtariState([fileName UTF8String], "rb") ? YES : NO;
 }
 
 #pragma mark -

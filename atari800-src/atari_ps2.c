@@ -2,7 +2,7 @@
  * atari_ps2.c - Sony PlayStation 2 port code
  *
  * Copyright (c) 2005 Troy Ayers and Piotr Fusik
- * Copyright (c) 2005 Atari800 development team (see DOC/CREDITS)
+ * Copyright (c) 2005-2014 Atari800 development team (see DOC/CREDITS)
  *
  * This file is part of the Atari800 emulator project which emulates
  * the Atari 400, 800, 800XL, 130XE, and 5200 8-bit computers.
@@ -91,7 +91,7 @@ static char padBuf[256] __attribute__((aligned(64)));
 
 #ifdef USE_TIMERS
 
-/* We use T0 for Atari_time() and T1 for Atari_sleep().
+/* We use T0 for PLATFORM_Time() and T1 for PLATFORM_Sleep().
    Note that both timers are just 16-bit. */
 
 #define T0_COUNT  (*(volatile unsigned long *) 0x10000000)
@@ -162,7 +162,7 @@ static void timer_shutdown(void)
 
 #endif /* USE_TIMERS */
 
-double Atari_time(void)
+double PLATFORM_Time(void)
 {
 #ifdef USE_TIMERS
 	/* AFAIK, multiplication is faster than division,
@@ -174,10 +174,10 @@ double Atari_time(void)
 #endif
 }
 
-/* this Atari_sleep() supports times only up to 0.11 sec,
+/* this PLATFORM_Sleep() supports times only up to 0.11 sec,
    which is enough for Atari800 purposes */
 
-/* void Atari_sleep(double s)
+/* void PLATFORM_Sleep(double s)
 {
 #ifdef USE_TIMERS
 	unsigned long count = 65536 - (unsigned long) (s * 576000);
@@ -200,7 +200,7 @@ double Atari_time(void)
 //        locked = 0;
 //}
 //
-//void Atari_sleep(double s)
+//void PLATFORM_Sleep(double s)
 //{
 //
 //        /* 15734 is around 1 second on NTSC */
@@ -209,7 +209,7 @@ double Atari_time(void)
 //        while (locked);
 //	locked = 1;
 //}
-void Atari_sleep(double s)
+void PLATFORM_Sleep(double s)
 {
 
 	if (UI_is_active){
@@ -327,6 +327,11 @@ int PLATFORM_Exit(int run_monitor)
 #ifdef USE_TIMERS
 	timer_shutdown();
 #endif
+/* TODO Sound_Exit should not be called here! It only stays here now because
+   the next step restarts the PS2 without ever returning from this function to
+   Atari800_Exit, so the call to Sound_Exit located in the latter function is
+   never invoked. So, should the LoadExecPS2call below get removed, so should
+   this call to Sound_Exit. */
 #ifdef SOUND
 	Sound_Exit();
 #endif

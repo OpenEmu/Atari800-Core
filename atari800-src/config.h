@@ -5,14 +5,13 @@
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
 /* The Austin Franklin 80 column card. */
-/* #undef AF80 */
+//#define AF80 1
 
 /* Target: Android */
 /* #undef ANDROID */
-//#define DREAMCAST
 
 /* Target: standard I/O. */
-//#define BASIC 1
+/* #undef BASIC */
 
 /* Define to use buffered debug output. */
 /* #undef BUFFERED_LOG */
@@ -24,10 +23,10 @@
 /* #undef CLOSEDIR_VOID */
 
 /* Define to allow console sound (keyboard clicks). */
-/* #undef CONSOLE_SOUND */
+#define CONSOLE_SOUND 1
 
 /* Define to activate crash menu after CIM instruction. */
-/* #undef CRASH_MENU */
+#define CRASH_MENU 1
 
 /* Define to disable bitmap graphics emulation in CURSES target. */
 /* #undef CURSES_BASIC */
@@ -51,13 +50,16 @@
 /* #undef DOS_DRIVES */
 
 /* Define to enable event recording. */
-/* #undef EVENT_RECORDING */
+#define EVENT_RECORDING 1
 
 /* Target: Atari Falcon system. */
 /* #undef FALCON */
 
 /* Define to use m68k assembler CPU core for Falcon target. */
 /* #undef FALCON_CPUASM */
+
+/* Use SDL for graphics and input. */
+//#define GUI_SDL 1
 
 /* Define to 1 if you have the <arpa/inet.h> header file. */
 #define HAVE_ARPA_INET_H 1
@@ -75,7 +77,7 @@
 /* #undef HAVE_DIRECT_H */
 
 /* Define to 1 if you have the <dirent.h> header file, and it defines `DIR'.
-   */
+ */
 #define HAVE_DIRENT_H 1
 
 /* Define to 1 if you don't have `vprintf' but do have `_doprnt.' */
@@ -172,10 +174,7 @@
 #define HAVE_OPENDIR 1
 
 /* Support for OpenGL graphics acceleration. */
-/* #undef HAVE_OPENGL */
-
-/* Define to 1 if you have the <readline/readline.h> header file. */
-#define HAVE_READLINE_READLINE_H 1
+#define HAVE_OPENGL 1
 
 /* Define to 1 if you have the `rename' function. */
 #define HAVE_RENAME 1
@@ -205,7 +204,7 @@
 #define HAVE_STAT 1
 
 /* Define to 1 if `stat' has the bug that it succeeds when given the
-   zero-length file name argument. */
+ zero-length file name argument. */
 /* #undef HAVE_STAT_EMPTY_STRING_BUG */
 
 /* Define to 1 if you have the <stdint.h> header file. */
@@ -248,14 +247,14 @@
 #define HAVE_SYSTEM 1
 
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
-   */
+ */
 /* #undef HAVE_SYS_DIR_H */
 
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
 #define HAVE_SYS_IOCTL_H 1
 
 /* Define to 1 if you have the <sys/ndir.h> header file, and it defines `DIR'.
-   */
+ */
 /* #undef HAVE_SYS_NDIR_H */
 
 /* Define to 1 if you have the <sys/select.h> header file. */
@@ -325,16 +324,13 @@
 #define IDE 1
 
 /* Define to allow sound interpolation. */
-/* #undef INTERPOLATE_SOUND */
-
-/* Target: Java NestedVM. */
-/* #undef JAVANVM */
+#define INTERPOLATE_SOUND 1
 
 /* Define to use LINUX joystick. */
 /* #undef LINUX_JOYSTICK */
 
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
-   slash. */
+ slash. */
 /* #undef LSTAT_FOLLOWS_SLASHED_SYMLINK */
 
 /* Define if mkdir takes only one argument. */
@@ -365,13 +361,13 @@
 /* #undef MOTIF */
 
 /* Define to allow color changes inside a scanline. */
-/* #undef NEW_CYCLE_EXACT */
+#define NEW_CYCLE_EXACT 1
 
 /* Define to use nonlinear POKEY mixing. */
-/* #undef NONLINEAR_MIXING */
+#define NONLINEAR_MIXING 1
 
 /* Use NTSC video filter. */
-/* #undef NTSC_FILTER */
+//#define NTSC_FILTER 1
 
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT "pstehlik@sophics.cz"
@@ -380,7 +376,7 @@
 #define PACKAGE_NAME "Atari800"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "Atari800 2.2.1"
+#define PACKAGE_STRING "Atari800 3.1.0"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "atari800"
@@ -389,10 +385,13 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "2.2.1"
+#define PACKAGE_VERSION "3.1.0"
 
 /* Define to use page-based attribute array. */
 /* #undef PAGED_ATTRIB */
+
+/* Use accurate PAL color blending. */
+//#define PAL_BLENDING 1
 
 /* Define to emulate the Black Box. */
 #define PBI_BB 1
@@ -401,16 +400,22 @@
 #define PBI_MIO 1
 
 /* A prototype 80 column card for the 1090 expansion box. */
-/* #undef PBI_PROTO80 */
+//#define PBI_PROTO80 1
 
 /* Define to emulate the 1400XL/1450XLD. */
-/* #undef PBI_XLD */
+//#define PBI_XLD 1
+
+/* Platform-specific mapping of RGB palette to display surface. */
+#define PLATFORM_MAP_PALETTE 1
 
 /* Target: Sony PlayStation 2. */
 /* #undef PS2 */
 
 /* Define as the return type of signal handlers (`int' or `void'). */
 #define RETSIGTYPE void
+
+/* Target: Raspberry Pi. */
+/* #undef RPI */
 
 /* Define to use R: device. */
 /* #undef R_IO_DEVICE */
@@ -422,7 +427,7 @@
 /* #undef R_SERIAL */
 
 /* Target: SDL library. */
-/* #undef SDL */
+//#define SDL 1
 
 /* Define to the type of arg 1 for `select'. */
 #define SELECT_TYPE_ARG1 int
@@ -440,41 +445,46 @@
 /* #undef SHM */
 
 /* Define to activate sound support. */
-/* #undef SOUND */
-#define SIGNED_SAMPLES 1
-#define POKEYSND_SIGNED_SAMPLES 1
 #define SOUND 1
+
+/* Platform updates sound buffer by callback function. */
+#define SOUND_CALLBACK 1
+
+/* Use new sound API. */
+#define SOUND_THIN_API 1
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
 /* Define to allow stereo sound. */
-/* #undef STEREO_SOUND */
 #define STEREO_SOUND 1
 
 /* Can change video modes on the fly. */
-/* #undef SUPPORTS_CHANGE_VIDEOMODE */
+//#define SUPPORTS_CHANGE_VIDEOMODE 1
 
 /* Save additional config file options. */
-/* #undef SUPPORTS_PLATFORM_CONFIGSAVE */
+//#define SUPPORTS_PLATFORM_CONFIGSAVE 1
 
 /* Additional config file options. */
-/* #undef SUPPORTS_PLATFORM_CONFIGURE */
+//#define SUPPORTS_PLATFORM_CONFIGURE 1
 
 /* Update the Palette if it changed. */
-/* #undef SUPPORTS_PLATFORM_PALETTEUPDATE */
+//#define SUPPORTS_PLATFORM_PALETTEUPDATE 1
 
 /* Platform-specific sleep function. */
 /* #undef SUPPORTS_PLATFORM_SLEEP */
 
+/* Platform-specific time function. */
+//#define SUPPORTS_PLATFORM_TIME 1
+
 /* Can display the screen rotated sideways. */
-/* #undef SUPPORTS_ROTATE_VIDEOMODE */
+#define SUPPORTS_ROTATE_VIDEOMODE 1
 
 /* Reinitialise the sound system. */
 /* #undef SUPPORTS_SOUND_REINIT */
 
 /* Define to use synchronized sound. */
-/* #undef SYNCHRONIZED_SOUND */
+//#define SYNCHRONIZED_SOUND 1
 
 /* Alternate system-wide config file for non-Unix OS. */
 /* #undef SYSTEM_WIDE_CFG_FILE */
@@ -494,17 +504,20 @@
 /* Target: Ncurses library. */
 /* #undef USE_NCURSES */
 
+/* Define to enable on-screen keyboard. */
+/* #undef USE_UI_BASIC_ONSCREEN_KEYBOARD */
+
 /* Define to use very slow computer support (faster -refresh). */
 /* #undef VERY_SLOW */
 
 /* Define to emulate the Alien Group Voice Box. */
-/* #undef VOICEBOX */
+//#define VOICEBOX 1
 
 /* Define to allow volume only sound. */
 /* #undef VOL_ONLY_SOUND */
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
-   significant byte first (like Motorola and SPARC, unlike Intel). */
+ significant byte first (like Motorola and SPARC, unlike Intel). */
 #if defined AC_APPLE_UNIVERSAL_BUILD
 # if defined __BIG_ENDIAN__
 #  define WORDS_BIGENDIAN 1
@@ -522,7 +535,7 @@
 /* #undef X11 */
 
 /* Emulate the XEP80. */
-/* #undef XEP80_EMULATION */
+//#define XEP80_EMULATION 1
 
 /* Target: X11 with XView. */
 /* #undef XVIEW */
@@ -540,14 +553,14 @@
 /* #undef const */
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
+ calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
-/* #undef inline */
+#define inline __inline__
 #endif
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 /* #undef size_t */
 
 /* Define to empty if the keyword `volatile' does not work. Warning: valid
-   code using `volatile' can become incorrect without. Disable with care. */
+ code using `volatile' can become incorrect without. Disable with care. */
 /* #undef volatile */
