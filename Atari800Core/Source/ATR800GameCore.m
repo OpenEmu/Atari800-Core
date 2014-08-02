@@ -745,6 +745,43 @@ void PLATFORM_SoundContinue(void){}
             break;
         case OE5200ButtonReset:
             INPUT_key_code = AKEY_5200_RESET;
+            break;
+        case OE5200Button1:
+            INPUT_key_code = AKEY_5200_1;
+            break;
+        case OE5200Button2:
+            INPUT_key_code = AKEY_5200_2;
+            break;
+        case OE5200Button3:
+            INPUT_key_code = AKEY_5200_3;
+            break;
+        case OE5200Button4:
+            INPUT_key_code = AKEY_5200_4;
+            break;
+        case OE5200Button5:
+            INPUT_key_code = AKEY_5200_5;
+            break;
+        case OE5200Button6:
+            INPUT_key_code = AKEY_5200_6;
+            break;
+        case OE5200Button7:
+            INPUT_key_code = AKEY_5200_7;
+            break;
+        case OE5200Button8:
+            INPUT_key_code = AKEY_5200_8;
+            break;
+        case OE5200Button9:
+            INPUT_key_code = AKEY_5200_9;
+            break;
+        case OE5200Button0:
+            INPUT_key_code = AKEY_5200_0;
+            break;
+        case OE5200ButtonAsterisk:
+            INPUT_key_code = AKEY_5200_ASTERISK;
+            break;
+        case OE5200ButtonPound:
+            INPUT_key_code = AKEY_5200_HASH;
+            break;
 		default:
 			break;
 	}
@@ -784,6 +821,43 @@ void PLATFORM_SoundContinue(void){}
             break;
         case OE5200ButtonReset:
             INPUT_key_code = AKEY_NONE;
+            break;
+        case OE5200Button1:
+            INPUT_key_code = AKEY_NONE;
+            break;
+        case OE5200Button2:
+            INPUT_key_code = AKEY_NONE;
+            break;
+        case OE5200Button3:
+            INPUT_key_code = AKEY_NONE;
+            break;
+        case OE5200Button4:
+            INPUT_key_code = AKEY_NONE;
+            break;
+        case OE5200Button5:
+            INPUT_key_code = AKEY_NONE;
+            break;
+        case OE5200Button6:
+            INPUT_key_code = AKEY_NONE;
+            break;
+        case OE5200Button7:
+            INPUT_key_code = AKEY_NONE;
+            break;
+        case OE5200Button8:
+            INPUT_key_code = AKEY_NONE;
+            break;
+        case OE5200Button9:
+            INPUT_key_code = AKEY_NONE;
+            break;
+        case OE5200Button0:
+            INPUT_key_code = AKEY_NONE;
+            break;
+        case OE5200ButtonAsterisk:
+            INPUT_key_code = AKEY_NONE;
+            break;
+        case OE5200ButtonPound:
+            INPUT_key_code = AKEY_NONE;
+            break;
         default:
             break;
     }
