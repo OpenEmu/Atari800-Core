@@ -119,7 +119,7 @@ int PLATFORM_Initialise(int *argc, char *argv[])
             Sound_Continue();
 	}
     
-    POKEYSND_stereo_enabled = TRUE;
+    //POKEYSND_stereo_enabled = TRUE;
 	
 	return TRUE;
 }
