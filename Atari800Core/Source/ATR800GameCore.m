@@ -295,6 +295,9 @@ void PLATFORM_SoundPause(void){}
 
 void PLATFORM_SoundContinue(void){}
 
+void PLATFORM_SoundLock(void){}
+void PLATFORM_SoundUnlock(void){}
+
 //int16_t convertSample(uint8_t sample)
 //{
 //	float floatSample = (float)sample / 255;
