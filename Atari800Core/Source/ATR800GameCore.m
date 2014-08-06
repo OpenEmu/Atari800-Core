@@ -345,7 +345,7 @@ void PLATFORM_SoundContinue(void){}
 	// Note: this triggers UI code and also calls the input functions above
 	Atari800_Frame();
     
-    int size = 44100 / (Atari800_tv_mode == Atari800_TV_NTSC ? 60 : 50) * 2;
+    unsigned int size = 44100 / (Atari800_tv_mode == Atari800_TV_NTSC ? 59.9 : 50) * 2;
     
     Sound_Callback(soundBuffer, size);
     
