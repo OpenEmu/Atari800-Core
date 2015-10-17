@@ -339,7 +339,6 @@ void PLATFORM_SoundUnlock(void){}
 	Atari800_Exit(false);
 	free(screenBuffer);
     free(soundBuffer);
-	[super dealloc];
 }
 
 - (void)executeFrame
