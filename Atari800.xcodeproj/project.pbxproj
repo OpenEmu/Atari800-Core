@@ -63,7 +63,6 @@
 		0269545714318515003A07D4 /* colours.c in Sources */ = {isa = PBXBuildFile; fileRef = 0269545214318515003A07D4 /* colours.c */; };
 		02E763B1143194CF008050EA /* statesav.c in Sources */ = {isa = PBXBuildFile; fileRef = 02E763AF143194CF008050EA /* statesav.c */; };
 		02E763C414319545008050EA /* ui_basic.c in Sources */ = {isa = PBXBuildFile; fileRef = 02E763C014319545008050EA /* ui_basic.c */; };
-		02E763C514319545008050EA /* ui.c in Sources */ = {isa = PBXBuildFile; fileRef = 02E763C214319545008050EA /* ui.c */; };
 		02E763C81431958E008050EA /* input.c in Sources */ = {isa = PBXBuildFile; fileRef = 02E763C61431958E008050EA /* input.c */; };
 		9491E45E1989B1CA0075135C /* artifact.c in Sources */ = {isa = PBXBuildFile; fileRef = 9491E45C1989B1CA0075135C /* artifact.c */; };
 		9491E462198B0A8C0075135C /* cycle_map.c in Sources */ = {isa = PBXBuildFile; fileRef = 9491E460198B0A8C0075135C /* cycle_map.c */; };
@@ -533,7 +532,6 @@
 				9491E462198B0A8C0075135C /* cycle_map.c in Sources */,
 				02E763B1143194CF008050EA /* statesav.c in Sources */,
 				02E763C414319545008050EA /* ui_basic.c in Sources */,
-				02E763C514319545008050EA /* ui.c in Sources */,
 				02E763C81431958E008050EA /* input.c in Sources */,
 				94DEA00D1719186F00073397 /* img_tape.c in Sources */,
 				94DEA00E1719186F00073397 /* sysrom.c in Sources */,

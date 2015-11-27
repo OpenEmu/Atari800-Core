@@ -55,6 +55,14 @@
 #include "sound.h"
 #include "statesav.h"
 #include "sysrom.h"
+#include "ui.h"
+
+int UI_is_active = FALSE;
+int UI_alt_function = -1;
+int UI_n_atari_files_dir = 0;
+int UI_n_saved_files_dir = 0;
+char UI_atari_files_dir[UI_MAX_DIRECTORIES][FILENAME_MAX];
+char UI_saved_files_dir[UI_MAX_DIRECTORIES][FILENAME_MAX];
 
 typedef struct {
 	int up;
@@ -109,10 +117,6 @@ static ATR800GameCore *_currentCore;
 
 - (BOOL)loadFileAtPath:(NSString *)path error:(NSError **)error
 {
-    // Get the size of the rom so that Atari800 knows which 5200 cart type to load
-    NSData *dataObj = [NSData dataWithContentsOfFile:[path stringByStandardizingPath]];
-    size_t size = [dataObj length];
-
     // Set the default palette (NTSC)
     NSString *palettePath = [[[NSBundle bundleForClass:[self class]] resourcePath] stringByAppendingPathComponent:@"Default.act"];
     strcpy(COLOURS_NTSC_external.filename, [palettePath UTF8String]);
@@ -215,107 +219,18 @@ static ATR800GameCore *_currentCore;
         return NO;
     }
 
-    if([[self systemIdentifier] isEqualToString:@"openemu.system.atari8bit"])
+    // Open and try to automatically detect file type, not 100% accurate
+    if(!AFILE_OpenFile([path UTF8String], 1, 1, FALSE))
     {
-        if(!AFILE_OpenFile([path UTF8String], 1, 1, FALSE))
-            NSLog(@"Failed to open file");
+        NSLog(@"Failed to open file");
+        return NO;
     }
 
-    if([[self systemIdentifier] isEqualToString:@"openemu.system.5200"])
+    // TODO - still need this?
+    /* Install requested ROM cartridge */
+    if (CARTRIDGE_main.type == CARTRIDGE_UNKNOWN)
     {
-        /* Install requested ROM cartridge */
-        CARTRIDGE_InsertAutoReboot([path UTF8String]);
-        NSLog(@"5200 cart size: %zd", size >> 10);
-
-        NSArray *One_Chip_16KB = @[@"a47fcb4eedab9418ea098bb431a407aa", // A.E. (Proto)
-                                   @"45f8841269313736489180c8ec3e9588", // Activision Decathlon, The
-                                   @"1913310b1e44ad7f3b90aeb16790a850", // Beamrider
-                                   @"f8973db8dc272c2e5eb7b8dbb5c0cc3b", // BerZerk
-                                   @"e0b47a17fa6cd9d6addc1961fca43414", // Blaster
-                                   @"8123393ae9635f6bc15ddc3380b04328", // Blue Print
-                                   @"3ff7707e25359c9bcb2326a5d8539852", // Choplifter!
-                                   @"7c27d225a13e178610babf331a0759c0", // David Crane's Pitfall II - Lost Caverns
-                                   @"2bb63d65efc8682bc4dfac0fd0a823be", // Final Legacy (Proto)
-                                   @"f8f0e0a6dc2ffee41b2a2dd736cba4cd", // H.E.R.O.
-                                   @"46264c86edf30666e28553bd08369b83", // Last Starfighter, The (Proto)
-                                   @"1cd67468d123219201702eadaffd0275", // Meteorites
-                                   @"84d88bcdeffee1ab880a5575c6aca45e", // Millipede (Proto)
-                                   @"d859bff796625e980db1840f15dec4b5", // Miner 2049er Starring Bounty Bob
-                                   @"296e5a3a9efd4f89531e9cf0259c903d", // Moon Patrol
-                                   @"099706cedd068aced7313ffa371d7ec3", // Quest for Quintana Roo
-                                   @"5dba5b478b7da9fd2c617e41fb5ccd31", // Robotron 2084
-                                   @"802a11dfcba6229cc2f93f0f3aaeb3aa", // Space Shuttle - A Journey Into Space
-                                   @"7dab86351fe78c2f529010a1ac83a4cf", // Super Pac-Man (Proto)
-                                   @"496b6a002bc7d749c02014f7ec6c303c", // Tempest (Proto)
-                                   @"33053f432f9c4ad38b5d02d1b485b5bd", // Track and Field (Proto)
-                                   @"560b68b7f83077444a57ebe9f932905a", // Wizard of Wor
-                                   @"dc45af8b0996cb6a94188b0be3be2e17"  // Zone Ranger
-                                   ];
-
-        NSArray *Two_Chip_16KB = @[@"bae7c1e5eb04e19ef8d0d0b5ce134332", // Astro Chase
-                                   @"78ccbcbb6b4d17b749ebb012e4878008", // Atari PAM Diagnostics (v2.0)
-                                   @"32a6d0de4f1728dee163eb2d4b3f49f1", // Atari PAM Diagnostics (v2.3)
-                                   @"8576867c2cfc965cf152be0468f684a7", // Battlezone (Proto)
-                                   @"a074a1ff0a16d1e034ee314b85fa41e9", // Buck Rogers - Planet of Zoom
-                                   @"261702e8d9acbf45d44bb61fd8fa3e17", // Centipede
-                                   @"5720423ebd7575941a1586466ba9beaf", // Congo Bongo
-                                   @"1a64edff521608f9f4fa9d7bdb355087", // Countermeasure
-                                   @"27d5f32b0d46d3d80773a2b505f95046", // Defender
-                                   @"3abd0c057474bad46e45f3d4e96eecee", // Dig Dug
-                                   @"14bd9a0423eafc3090333af916cfbce6", // Frisky Tom (Proto)
-                                   @"d8636222c993ca71ca0904c8d89c4411", // Frogger II - Threeedeep!
-                                   @"dacc0a82e8ee0c086971f9d9bac14127", // Gyruss
-                                   @"936db7c08e6b4b902c585a529cb15fc5", // James Bond 007
-                                   @"25cfdef5bf9b126166d5394ae74a32e7", // Joust
-                                   @"bc748804f35728e98847da6cdaf241a7", // Jr. Pac-Man (Proto)
-                                   @"834067fdce5d09b86741e41e7e491d6c", // Jungle Hunt
-                                   @"796d2c22f8205fb0ce8f1ee67c8eb2ca", // Kangaroo
-                                   @"d0a1654625dbdf3c6b8480c1ed17137f", // Looney Tunes Hotel (Proto)
-                                   @"24348dd9287f54574ccc40ee40d24a86", // Microgammon SB (Proto)
-                                   @"69d472a79f404e49ad2278df3c8a266e", // Miniature Golf (Proto)
-                                   @"694897cc0d98fcf2f59eef788881f67d", // Montezuma's Revenge featuring Panama Joe
-                                   @"ef9a920ffdf592546499738ee911fc1e", // Ms. Pac-Man
-                                   @"f1a4d62d9ba965335fa13354a6264623", // Pac-Man
-                                   @"fd0cbea6ad18194be0538844e3d7fdc9", // Pole Position
-                                   @"dd4ae6add63452aafe7d4fa752cd78ca", // Popeye
-                                   @"9b7d9d874a93332582f34d1420e0f574", // Qix
-                                   @"a71bfb11676a4e4694af66e311721a1b", // RealSports Basketball (82-11-05) (Proto)
-                                   @"022c47b525b058796841134bb5c75a18", // RealSports Football
-                                   @"3074fad290298d56c67f82e8588c5a8b", // RealSports Soccer
-                                   @"7e683e571cbe7c77f76a1648f906b932", // RealSports Tennis
-                                   @"ddf7834a420f1eaae20a7a6255f80a99", // Road Runner (Proto)
-                                   @"6e24e3519458c5cb95a7fd7711131f8d", // Space Dungeon
-                                   @"993e3be7199ece5c3e03092e3b3c0d1d", // Sport Goofy (Proto)
-                                   @"e2d3a3e52bb4e3f7e489acd9974d68e2", // Star Raiders
-                                   @"c959b65be720a03b5479650a3af5a511", // Star Trek - Strategic Operations Simulator
-                                   @"00beaa8405c7fb90d86be5bb1b01ea66", // Star Wars - The Arcade Game
-                                   @"595703dc459cd51fed6e2a191c462969", // Stargate (Proto)
-                                   @"4f6c58c28c41f31e3a1515fe1e5d15af"  // Xari Arena (Proto)
-                                   ];
-
-        // Set 5200 cart type to load based on size
-        switch (size >> 10)
-        {
-            case 40:
-                CARTRIDGE_SetType(&CARTRIDGE_main, CARTRIDGE_5200_40); // Bounty Bob Strikes Back
-                break;
-            case 32:
-                CARTRIDGE_SetType(&CARTRIDGE_main, CARTRIDGE_5200_32);
-                break;
-            case 16:
-                // Determine if 16KB cart is one-chip (NS_16) or two-chip (EE_16)
-                if([One_Chip_16KB containsObject:[[self ROMMD5] lowercaseString]])
-                    CARTRIDGE_SetType(&CARTRIDGE_main, CARTRIDGE_5200_NS_16);
-                else
-                    CARTRIDGE_SetType(&CARTRIDGE_main, CARTRIDGE_5200_EE_16);
-                break;
-            case 8:
-                CARTRIDGE_SetType(&CARTRIDGE_main, CARTRIDGE_5200_8);
-                break;
-            case 4:
-                CARTRIDGE_SetType(&CARTRIDGE_main, CARTRIDGE_5200_4);
-                break;
-        }
+        CARTRIDGE_SetType(&CARTRIDGE_main, UI_SelectCartType(CARTRIDGE_main.size));
     }
 
     //POKEYSND_Init(POKEYSND_FREQ_17_EXACT, 44100, 1, POKEYSND_BIT16);
@@ -690,6 +605,124 @@ static ATR800GameCore *_currentCore;
 }
 
 // Atari800 platform calls
+
+int UI_SelectCartType(int k)
+{
+    NSLog(@"Cart size: %d", k);
+
+    if([[_currentCore systemIdentifier] isEqualToString:@"openemu.system.atari8bit"])
+    {
+        // TODO: improve detection using MD5 lookup
+        switch (k)
+        {
+            case 2:    return CARTRIDGE_STD_2;
+            case 4:    return CARTRIDGE_STD_4;
+            case 8:    return CARTRIDGE_STD_8;
+            case 16:   return CARTRIDGE_STD_16;
+            case 32:   return CARTRIDGE_XEGS_32;
+            case 40:   return CARTRIDGE_BBSB_40;
+            case 64:   return CARTRIDGE_XEGS_07_64;
+            case 128:  return CARTRIDGE_XEGS_128;
+            case 256:  return CARTRIDGE_XEGS_256;
+            case 512:  return CARTRIDGE_XEGS_512;
+            case 1024: return CARTRIDGE_ATMAX_1024;
+            default:
+                return CARTRIDGE_NONE;
+        }
+    }
+
+    if([[_currentCore systemIdentifier] isEqualToString:@"openemu.system.5200"])
+    {
+        NSArray *One_Chip_16KB = @[@"a47fcb4eedab9418ea098bb431a407aa", // A.E. (Proto)
+                                   @"45f8841269313736489180c8ec3e9588", // Activision Decathlon, The
+                                   @"1913310b1e44ad7f3b90aeb16790a850", // Beamrider
+                                   @"f8973db8dc272c2e5eb7b8dbb5c0cc3b", // BerZerk
+                                   @"e0b47a17fa6cd9d6addc1961fca43414", // Blaster
+                                   @"8123393ae9635f6bc15ddc3380b04328", // Blue Print
+                                   @"3ff7707e25359c9bcb2326a5d8539852", // Choplifter!
+                                   @"7c27d225a13e178610babf331a0759c0", // David Crane's Pitfall II - Lost Caverns
+                                   @"2bb63d65efc8682bc4dfac0fd0a823be", // Final Legacy (Proto)
+                                   @"f8f0e0a6dc2ffee41b2a2dd736cba4cd", // H.E.R.O.
+                                   @"46264c86edf30666e28553bd08369b83", // Last Starfighter, The (Proto)
+                                   @"1cd67468d123219201702eadaffd0275", // Meteorites
+                                   @"84d88bcdeffee1ab880a5575c6aca45e", // Millipede (Proto)
+                                   @"d859bff796625e980db1840f15dec4b5", // Miner 2049er Starring Bounty Bob
+                                   @"296e5a3a9efd4f89531e9cf0259c903d", // Moon Patrol
+                                   @"099706cedd068aced7313ffa371d7ec3", // Quest for Quintana Roo
+                                   @"5dba5b478b7da9fd2c617e41fb5ccd31", // Robotron 2084
+                                   @"802a11dfcba6229cc2f93f0f3aaeb3aa", // Space Shuttle - A Journey Into Space
+                                   @"7dab86351fe78c2f529010a1ac83a4cf", // Super Pac-Man (Proto)
+                                   @"496b6a002bc7d749c02014f7ec6c303c", // Tempest (Proto)
+                                   @"33053f432f9c4ad38b5d02d1b485b5bd", // Track and Field (Proto)
+                                   @"560b68b7f83077444a57ebe9f932905a", // Wizard of Wor
+                                   @"dc45af8b0996cb6a94188b0be3be2e17"  // Zone Ranger
+                                   ];
+
+        NSArray *Two_Chip_16KB = @[@"bae7c1e5eb04e19ef8d0d0b5ce134332", // Astro Chase
+                                   @"78ccbcbb6b4d17b749ebb012e4878008", // Atari PAM Diagnostics (v2.0)
+                                   @"32a6d0de4f1728dee163eb2d4b3f49f1", // Atari PAM Diagnostics (v2.3)
+                                   @"8576867c2cfc965cf152be0468f684a7", // Battlezone (Proto)
+                                   @"a074a1ff0a16d1e034ee314b85fa41e9", // Buck Rogers - Planet of Zoom
+                                   @"261702e8d9acbf45d44bb61fd8fa3e17", // Centipede
+                                   @"5720423ebd7575941a1586466ba9beaf", // Congo Bongo
+                                   @"1a64edff521608f9f4fa9d7bdb355087", // Countermeasure
+                                   @"27d5f32b0d46d3d80773a2b505f95046", // Defender
+                                   @"3abd0c057474bad46e45f3d4e96eecee", // Dig Dug
+                                   @"14bd9a0423eafc3090333af916cfbce6", // Frisky Tom (Proto)
+                                   @"d8636222c993ca71ca0904c8d89c4411", // Frogger II - Threeedeep!
+                                   @"dacc0a82e8ee0c086971f9d9bac14127", // Gyruss
+                                   @"936db7c08e6b4b902c585a529cb15fc5", // James Bond 007
+                                   @"25cfdef5bf9b126166d5394ae74a32e7", // Joust
+                                   @"bc748804f35728e98847da6cdaf241a7", // Jr. Pac-Man (Proto)
+                                   @"834067fdce5d09b86741e41e7e491d6c", // Jungle Hunt
+                                   @"796d2c22f8205fb0ce8f1ee67c8eb2ca", // Kangaroo
+                                   @"d0a1654625dbdf3c6b8480c1ed17137f", // Looney Tunes Hotel (Proto)
+                                   @"24348dd9287f54574ccc40ee40d24a86", // Microgammon SB (Proto)
+                                   @"69d472a79f404e49ad2278df3c8a266e", // Miniature Golf (Proto)
+                                   @"694897cc0d98fcf2f59eef788881f67d", // Montezuma's Revenge featuring Panama Joe
+                                   @"ef9a920ffdf592546499738ee911fc1e", // Ms. Pac-Man
+                                   @"f1a4d62d9ba965335fa13354a6264623", // Pac-Man
+                                   @"fd0cbea6ad18194be0538844e3d7fdc9", // Pole Position
+                                   @"dd4ae6add63452aafe7d4fa752cd78ca", // Popeye
+                                   @"9b7d9d874a93332582f34d1420e0f574", // Qix
+                                   @"a71bfb11676a4e4694af66e311721a1b", // RealSports Basketball (82-11-05) (Proto)
+                                   @"022c47b525b058796841134bb5c75a18", // RealSports Football
+                                   @"3074fad290298d56c67f82e8588c5a8b", // RealSports Soccer
+                                   @"7e683e571cbe7c77f76a1648f906b932", // RealSports Tennis
+                                   @"ddf7834a420f1eaae20a7a6255f80a99", // Road Runner (Proto)
+                                   @"6e24e3519458c5cb95a7fd7711131f8d", // Space Dungeon
+                                   @"993e3be7199ece5c3e03092e3b3c0d1d", // Sport Goofy (Proto)
+                                   @"e2d3a3e52bb4e3f7e489acd9974d68e2", // Star Raiders
+                                   @"c959b65be720a03b5479650a3af5a511", // Star Trek - Strategic Operations Simulator
+                                   @"00beaa8405c7fb90d86be5bb1b01ea66", // Star Wars - The Arcade Game
+                                   @"595703dc459cd51fed6e2a191c462969", // Stargate (Proto)
+                                   @"4f6c58c28c41f31e3a1515fe1e5d15af"  // Xari Arena (Proto)
+                                   ];
+
+        // Set 5200 cart type to load based on size
+        switch (k)
+        {
+            case 4: return CARTRIDGE_5200_4;
+            case 8: return CARTRIDGE_5200_8;
+            case 16:
+                // Determine if 16KB cart is one-chip (NS_16) or two-chip (EE_16)
+                if([One_Chip_16KB containsObject:[[_currentCore ROMMD5] lowercaseString]])
+                    return CARTRIDGE_5200_NS_16;
+                else
+                    return CARTRIDGE_5200_EE_16;
+            case 32: return CARTRIDGE_5200_32;
+            case 40: return CARTRIDGE_5200_40; // Bounty Bob Strikes Back
+            default:
+                return CARTRIDGE_NONE;
+        }
+    }
+
+    return CARTRIDGE_NONE;
+}
+
+void UI_Run(void)
+{
+}
 
 int PLATFORM_Initialise(int *argc, char *argv[])
 {
