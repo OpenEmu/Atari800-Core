@@ -26,6 +26,7 @@
 
 #import "ATR800GameCore.h"
 #import <OpenEmuBase/OERingBuffer.h>
+#import "OEA8SystemResponderClient.h"
 #import "OE5200SystemResponderClient.h"
 #import <OpenGL/gl.h>
 
@@ -67,7 +68,7 @@ typedef struct {
 	int reset;
 } ATR5200ControllerState;
 
-@interface ATR800GameCore () <OE5200SystemResponderClient>
+@interface ATR800GameCore () <OEA8SystemResponderClient, OE5200SystemResponderClient>
 {
 	uint8_t *_videoBuffer;
     uint8_t *_soundBuffer;
@@ -132,11 +133,36 @@ static ATR800GameCore *_currentCore;
         NSString *biosPath = [self biosDirectoryPath];
         strcpy(biosFileName, [[biosPath stringByAppendingPathComponent:@"5200.rom"] UTF8String]);
 
-        SYSROM_SetPath(biosFileName, 3, SYSROM_5200);
+        SYSROM_SetPath(biosFileName, 1, SYSROM_5200);
 
         // Setup machine type
         Atari800_SetMachineType(Atari800_MACHINE_5200);
         MEMORY_ram_size = 16;
+    }
+    else if([[self systemIdentifier] isEqualToString:@"openemu.system.atari8bit"])
+    {
+        char basicFileName[2048], osbFileName[2048], xlFileName[2048];
+        NSString *biosPath = [self biosDirectoryPath];
+        strcpy(basicFileName, [[biosPath stringByAppendingPathComponent:@"ataribas.rom"] UTF8String]);
+        strcpy(osbFileName, [[biosPath stringByAppendingPathComponent:@"atariosb.rom"] UTF8String]);
+        strcpy(xlFileName, [[biosPath stringByAppendingPathComponent:@"atarixl.rom"] UTF8String]);
+
+        SYSROM_SetPath(basicFileName, 1, SYSROM_BASIC_C);
+        SYSROM_SetPath(osbFileName, 2, SYSROM_B_NTSC, SYSROM_800_CUSTOM);
+        SYSROM_SetPath(xlFileName, 1, SYSROM_BB01R2);
+
+        // Setup machine type as Atari 130XE
+        Atari800_SetMachineType(Atari800_MACHINE_XLXE);
+        MEMORY_ram_size = 128;
+        Atari800_builtin_basic = TRUE;
+        Atari800_keyboard_leds = FALSE;
+        Atari800_f_keys = FALSE;
+        Atari800_jumper = FALSE;
+        Atari800_builtin_game = FALSE;
+        Atari800_keyboard_detached = FALSE;
+
+        // Disable on-screen disk activity indicator
+        Screen_show_disk_led = FALSE;
     }
 
     int arg = 0;
@@ -187,6 +213,12 @@ static ATR800GameCore *_currentCore;
     if(!Atari800_InitialiseMachine()) {
         NSLog(@"** Failed to initialize machine");
         return NO;
+    }
+
+    if([[self systemIdentifier] isEqualToString:@"openemu.system.atari8bit"])
+    {
+        if(!AFILE_OpenFile([path UTF8String], 1, 1, FALSE))
+            NSLog(@"Failed to open file");
     }
 
     if([[self systemIdentifier] isEqualToString:@"openemu.system.5200"])
@@ -376,6 +408,97 @@ static ATR800GameCore *_currentCore;
 }
 
 #pragma mark - Input
+
+- (oneway void)mouseMovedAtPoint:(OEIntPoint)point
+{
+
+}
+
+- (oneway void)leftMouseDownAtPoint:(OEIntPoint)point
+{
+
+}
+
+- (oneway void)leftMouseUp
+{
+
+}
+
+- (oneway void)rightMouseDownAtPoint:(OEIntPoint)point
+{
+
+}
+
+- (oneway void)rightMouseUp
+{
+
+}
+
+- (oneway void)keyDown:(unsigned short)keyHIDCode characters:(NSString *)characters charactersIgnoringModifiers:(NSString *)charactersIgnoringModifiers flags:(NSEventModifierFlags)modifierFlags
+{
+
+}
+
+- (oneway void)keyUp:(unsigned short)keyHIDCode characters:(NSString *)characters charactersIgnoringModifiers:(NSString *)charactersIgnoringModifiers flags:(NSEventModifierFlags)modifierFlags
+{
+
+}
+
+- (oneway void)didPushA8Button:(OEA8Button)button forPlayer:(NSUInteger)player
+{
+    player--;
+
+    switch (button)
+    {
+        case OEA8ButtonFire:
+            controllerStates[player].fire = 1;
+            break;
+        case OEA8JoystickUp:
+            controllerStates[player].up = 1;
+            //INPUT_key_code = AKEY_UP ^ AKEY_CTRL;
+            //INPUT_key_code = INPUT_STICK_FORWARD;
+            break;
+        case OEA8JoystickDown:
+            controllerStates[player].down = 1;
+            break;
+        case OEA8JoystickLeft:
+            controllerStates[player].left = 1;
+            break;
+        case OEA8JoystickRight:
+            controllerStates[player].right = 1;
+            break;
+        default:
+            break;
+    }
+}
+
+- (oneway void)didReleaseA8Button:(OEA8Button)button forPlayer:(NSUInteger)player
+{
+    player--;
+
+    switch (button)
+    {
+        case OEA8ButtonFire:
+            controllerStates[player].fire = 0;
+            break;
+        case OEA8JoystickUp:
+            controllerStates[player].up = 0;
+            //INPUT_key_code = AKEY_UP ^ AKEY_CTRL;
+            //INPUT_key_code = INPUT_STICK_FORWARD;
+            break;
+        case OEA8JoystickDown:
+            controllerStates[player].down = 0;
+            break;
+        case OEA8JoystickLeft:
+            controllerStates[player].left = 0;
+            break;
+        case OEA8JoystickRight:
+            controllerStates[player].right = 0;
+            break;
+        default:
+            break;
+    }
+}
 
 - (oneway void)didPush5200Button:(OE5200Button)button forPlayer:(NSUInteger)player
 {

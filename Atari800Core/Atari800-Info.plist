@@ -42,6 +42,44 @@
 				</dict>
 			</array>
 		</dict>
+		<key>openemu.system.atari8bit</key>
+		<dict>
+			<key>OEGameCoreRequiresFiles</key>
+			<true/>
+			<key>OERequiredFiles</key>
+			<array>
+				<dict>
+					<key>Description</key>
+					<string>Atari XL/XE BASIC rev. C ROM</string>
+					<key>MD5</key>
+					<string>0bac0c6a50104045d902df4503a4c30b</string>
+					<key>Name</key>
+					<string>ataribas.rom</string>
+					<key>Size</key>
+					<integer>8192</integer>
+				</dict>
+				<dict>
+					<key>Description</key>
+					<string>Atari 400/800 OS rev. B ROM (known incorrect dump)</string>
+					<key>MD5</key>
+					<string>a3e8d617c95d08031fe1b20d541434b2</string>
+					<key>Name</key>
+					<string>atariosb.rom</string>
+					<key>Size</key>
+					<integer>10240</integer>
+				</dict>
+				<dict>
+					<key>Description</key>
+					<string>Atari XL/XE OS rev. 2 ROM</string>
+					<key>MD5</key>
+					<string>06daac977823773a3eea3422fd26a703</string>
+					<key>Name</key>
+					<string>atarixl.rom</string>
+					<key>Size</key>
+					<integer>16384</integer>
+				</dict>
+			</array>
+		</dict>
 	</dict>
 	<key>OEGameCorePlayerCount</key>
 	<string>1</string>
@@ -50,6 +88,7 @@
 	<key>OESystemIdentifiers</key>
 	<array>
 		<string>openemu.system.5200</string>
+		<string>openemu.system.atari8bit</string>
 	</array>
 	<key>SUEnableAutomaticChecks</key>
 	<string>1</string>
