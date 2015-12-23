@@ -281,6 +281,18 @@ static ATR800GameCore *_currentCore;
     return OEIntSizeMake(Screen_WIDTH, Screen_HEIGHT);
 }
 
+- (OEIntRect)screenRect
+{
+    return OEIntRectMake(24, 0, 336, 240);
+}
+
+- (OEIntSize)aspectSize
+{
+    // TODO: fix PAR
+    //return OEIntSizeMake(336 * (6.0 / 7.0), 240);
+    return OEIntSizeMake(336, 240);
+}
+
 - (GLenum)pixelFormat
 {
     return GL_BGRA;
