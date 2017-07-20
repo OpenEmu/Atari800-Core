@@ -230,6 +230,7 @@
 				02695362143169EB003A07D4 /* Products */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 0;
 		};
 		02695362143169EB003A07D4 /* Products */ = {
 			isa = PBXGroup;
