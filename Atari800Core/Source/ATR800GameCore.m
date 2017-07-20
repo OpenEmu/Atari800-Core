@@ -303,11 +303,6 @@ static ATR800GameCore *_currentCore;
     return GL_UNSIGNED_INT_8_8_8_8_REV;
 }
 
-- (GLenum)internalPixelFormat
-{
-    return GL_RGB8;
-}
-
 #pragma mark - Audio
 
 - (double)audioSampleRate
