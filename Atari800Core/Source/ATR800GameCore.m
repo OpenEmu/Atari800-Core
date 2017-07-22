@@ -97,7 +97,6 @@ static ATR800GameCore *_currentCore;
 {
     if((self = [super init]))
     {
-        _videoBuffer = malloc(Screen_WIDTH * Screen_HEIGHT * 4);
         _soundBuffer = malloc(2048); // 4096 if stereo?
     }
 
@@ -250,8 +249,6 @@ static ATR800GameCore *_currentCore;
     //NSLog(@"Sound_out.channels %d frag_frames %d freq %d sample_size %d", Sound_out.channels, Sound_out.frag_frames, Sound_out.freq, Sound_out.sample_size);
 
     [[self ringBufferAtIndex:0] write:_soundBuffer maxLength:size];
-
-    [self renderToBuffer];
 }
 
 - (void)resetEmulation
@@ -271,9 +268,35 @@ static ATR800GameCore *_currentCore;
 
 #pragma mark - Video
 
-- (const void *)videoBuffer
+- (const void *)getVideoBufferWithHint:(void *)hint
 {
-    return _videoBuffer;
+    if (!hint) {
+        if (!_videoBuffer) _videoBuffer = (uint8_t *)malloc(Screen_WIDTH * Screen_HEIGHT * 4);
+        hint = _videoBuffer;
+    }
+
+    // TODO: support paletted video in OE
+    int i, j;
+    UBYTE *source = (UBYTE *)(Screen_atari);
+    UBYTE *destination = (uint8_t*)hint;
+    for (i = 0; i < Screen_HEIGHT; i++)
+    {
+        for (j = 0; j < Screen_WIDTH; j++)
+        {
+            UBYTE r,g,b;
+            r = Colours_GetR(*source);
+            g = Colours_GetG(*source);
+            b = Colours_GetB(*source);
+            *destination++ = b;
+            *destination++ = g;
+            *destination++ = r;
+            *destination++ = 0xff;
+            source++;
+        }
+        //		source += Screen_WIDTH - ATARI_VISIBLE_WIDTH;
+    }
+
+    return hint;
 }
 
 - (OEIntSize)bufferSize
@@ -578,29 +601,6 @@ static ATR800GameCore *_currentCore;
 }
 
 #pragma mark - Misc Helper Methods
-
-- (void)renderToBuffer
-{
-    int i, j;
-    UBYTE *source = (UBYTE *)(Screen_atari);
-    UBYTE *destination = _videoBuffer;
-    for (i = 0; i < Screen_HEIGHT; i++)
-    {
-        for (j = 0; j < Screen_WIDTH; j++)
-        {
-            UBYTE r,g,b;
-            r = Colours_GetR(*source);
-            g = Colours_GetG(*source);
-            b = Colours_GetB(*source);
-            *destination++ = b;
-            *destination++ = g;
-            *destination++ = r;
-            *destination++ = 0xff;
-            source++;
-        }
-        //		source += Screen_WIDTH - ATARI_VISIBLE_WIDTH;
-    }
-}
 
 - (ATR5200ControllerState)controllerStateForPlayer:(NSUInteger)playerNum
 {
