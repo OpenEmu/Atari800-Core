@@ -82,7 +82,6 @@ typedef struct {
     uint8_t *_soundBuffer;
 	ATR5200ControllerState controllerStates[4];
 }
-- (void)renderToBuffer;
 - (ATR5200ControllerState)controllerStateForPlayer:(NSUInteger)playerNum;
 //int16_t convertSample(uint8_t);
 @end
@@ -118,7 +117,7 @@ static ATR800GameCore *_currentCore;
 {
     // Set the default palette (NTSC)
     NSString *palettePath = [[[NSBundle bundleForClass:[self class]] resourcePath] stringByAppendingPathComponent:@"Default.act"];
-    strcpy(COLOURS_NTSC_external.filename, [palettePath UTF8String]);
+    strcpy(COLOURS_NTSC_external.filename, palettePath.fileSystemRepresentation);
     COLOURS_NTSC_external.loaded = TRUE;
 
     Atari800_tv_mode = Atari800_TV_NTSC;
@@ -134,7 +133,7 @@ static ATR800GameCore *_currentCore;
         // Set 5200.rom BIOS path
         char biosFileName[2048];
         NSString *biosPath = [self biosDirectoryPath];
-        strcpy(biosFileName, [[biosPath stringByAppendingPathComponent:@"5200.rom"] UTF8String]);
+        strcpy(biosFileName, [[biosPath stringByAppendingPathComponent:@"5200.rom"] fileSystemRepresentation]);
 
         SYSROM_SetPath(biosFileName, 1, SYSROM_5200);
 
@@ -146,9 +145,9 @@ static ATR800GameCore *_currentCore;
     {
         char basicFileName[2048], osbFileName[2048], xlFileName[2048];
         NSString *biosPath = [self biosDirectoryPath];
-        strcpy(basicFileName, [[biosPath stringByAppendingPathComponent:@"ataribas.rom"] UTF8String]);
-        strcpy(osbFileName, [[biosPath stringByAppendingPathComponent:@"atariosb.rom"] UTF8String]);
-        strcpy(xlFileName, [[biosPath stringByAppendingPathComponent:@"atarixl.rom"] UTF8String]);
+        strcpy(basicFileName, [[biosPath stringByAppendingPathComponent:@"ataribas.rom"] fileSystemRepresentation]);
+        strcpy(osbFileName, [[biosPath stringByAppendingPathComponent:@"atariosb.rom"] fileSystemRepresentation]);
+        strcpy(xlFileName, [[biosPath stringByAppendingPathComponent:@"atarixl.rom"] fileSystemRepresentation]);
 
         SYSROM_SetPath(basicFileName, 1, SYSROM_BASIC_C);
         SYSROM_SetPath(osbFileName, 2, SYSROM_B_NTSC, SYSROM_800_CUSTOM);
@@ -219,7 +218,7 @@ static ATR800GameCore *_currentCore;
     }
 
     // Open and try to automatically detect file type, not 100% accurate
-    if(!AFILE_OpenFile([path UTF8String], 1, 1, FALSE))
+    if(!AFILE_OpenFile(path.fileSystemRepresentation, 1, 1, FALSE))
     {
         NSLog(@"Failed to open file");
         return NO;
@@ -342,13 +341,13 @@ static ATR800GameCore *_currentCore;
 
 - (void)saveStateToFileAtPath:(NSString *)fileName completionHandler:(void (^)(BOOL, NSError *))block
 {
-    BOOL success = StateSav_SaveAtariState([fileName UTF8String], "wb", TRUE);
+    BOOL success = StateSav_SaveAtariState(fileName.fileSystemRepresentation, "wb", TRUE);
     if(block) block(success==YES, nil);
 }
 
 - (void)loadStateFromFileAtPath:(NSString *)fileName completionHandler:(void (^)(BOOL, NSError *))block
 {
-    BOOL success = StateSav_ReadAtariState([fileName UTF8String], "rb");
+    BOOL success = StateSav_ReadAtariState(fileName.fileSystemRepresentation, "rb");
     if(block) block(success==YES, nil);
 }
 
