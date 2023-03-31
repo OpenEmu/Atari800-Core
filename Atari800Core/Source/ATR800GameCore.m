@@ -378,12 +378,12 @@ static ATR800GameCore *_currentCore;
 
 }
 
-- (oneway void)keyDown:(unsigned short)keyHIDCode characters:(NSString *)characters charactersIgnoringModifiers:(NSString *)charactersIgnoringModifiers flags:(NSEventModifierFlags)modifierFlags
+- (oneway void)keyDown:(NSUInteger)keyHIDCode
 {
 
 }
 
-- (oneway void)keyUp:(unsigned short)keyHIDCode characters:(NSString *)characters charactersIgnoringModifiers:(NSString *)charactersIgnoringModifiers flags:(NSEventModifierFlags)modifierFlags
+- (oneway void)keyUp:(NSUInteger)keyHIDCode
 {
 
 }
